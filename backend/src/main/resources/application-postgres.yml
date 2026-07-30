@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/linkit}
+    username: ${DB_USERNAME:linkit}
+    password: ${DB_PASSWORD:linkit}
+  h2:
+    console:
+      enabled: false
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:true}
