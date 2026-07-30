@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: linkit-backend
+  datasource:
+    url: jdbc:h2:mem:linkit;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+      timeout: 12h
+
+linkit:
+  security:
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
