@@ -6,6 +6,9 @@ import kr.ac.mju.linkit.auth.AuthExceptions.DuplicateEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidCredentials;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidMjuEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.WeakPassword;
+import kr.ac.mju.linkit.handover.HandoverExceptions.CategoryNotFound;
+import kr.ac.mju.linkit.handover.HandoverExceptions.HandoverNotFound;
+import kr.ac.mju.linkit.handover.HandoverExceptions.InvalidStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -34,6 +37,21 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidCredentials.class)
     ResponseEntity<ApiError> invalidCredentials(InvalidCredentials exception) {
         return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", exception.getMessage());
+    }
+
+    @ExceptionHandler(CategoryNotFound.class)
+    ResponseEntity<ApiError> categoryNotFound(CategoryNotFound exception) {
+        return error(HttpStatus.NOT_FOUND, "HANDOVER_CATEGORY_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler(HandoverNotFound.class)
+    ResponseEntity<ApiError> handoverNotFound(HandoverNotFound exception) {
+        return error(HttpStatus.NOT_FOUND, "HANDOVER_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidStatus.class)
+    ResponseEntity<ApiError> invalidStatus(InvalidStatus exception) {
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

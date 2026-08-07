@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.http.HttpSession;
+import kr.ac.mju.linkit.handover.HandoverCategoryRepository;
+import kr.ac.mju.linkit.handover.HandoverRepository;
 import kr.ac.mju.linkit.user.User;
 import kr.ac.mju.linkit.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,10 +33,18 @@ class AuthControllerIntegrationTests {
     private UserRepository userRepository;
 
     @Autowired
+    private HandoverRepository handoverRepository;
+
+    @Autowired
+    private HandoverCategoryRepository categoryRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void cleanDatabase() {
+        handoverRepository.deleteAll();
+        categoryRepository.deleteAll();
         userRepository.deleteAll();
     }
 

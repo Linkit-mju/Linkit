@@ -1,168 +1,107 @@
 # Linkit 카테고리·인수인계 백엔드 구현 명세
 
-> 대상: Codex 구현 작업용
-> 상태: Frontend prototype contract v1
-> 기준 프론트엔드: `frontend/src/handover/`
+> 상태: 프론트엔드 프로토타입 기준 구현 계약
+> 기준 화면: `frontend/src/handover/`
+> 기준 인증 구현: `backend/src/main/java/kr/ac/mju/linkit/auth/`
+> API 기본 경로: `/api/v1`
 
-## 1. 목표와 범위
+## 1. 목적과 현재 상태
 
-프론트엔드의 카테고리 및 인수인계 CRUD를 Spring Boot API와 PostgreSQL/H2 영속화로 연결한다.
+이 문서는 계획 문서가 아니라 현재 인수인계 화면이 실제로 사용하는 상태 모델과 사용자 동작을 백엔드 구현 계약으로 옮긴 것이다.
 
-이번 구현에 포함한다.
+현재 백엔드에는 학교 이메일 회원가입, 세션 로그인·로그아웃, 현재 사용자 조회 및 CSRF 발급만 구현되어 있다. 카테고리와 인수인계 데이터는 프론트엔드의 `INITIAL_CATEGORIES`, `INITIAL_HANDOVERS` 메모리 상태로만 존재한다.
 
-- 로그인 사용자별 카테고리 조회·추가·수정·삭제
-- 로그인 사용자별 인수인계 조회·추가·수정·삭제
-- 카테고리별 인수인계 조회와 제목/담당자 검색
-- 낙관적 잠금으로 동시 수정 충돌 방지
-- 모든 읽기와 쓰기에서 소유권 검증
-- Flyway 마이그레이션과 통합 테스트
+이번 범위에는 다음을 포함한다.
 
-이번 구현에서는 제외한다.
+- 로그인 사용자별 카테고리 생성, 조회, 수정, 삭제
+- 로그인 사용자별 인수인계 생성, 전체 조회, 수정, 삭제
+- 카테고리 삭제 시 포함된 인수인계 삭제
+- 현재 화면이 표시하는 인수인계 전체 필드의 영속화
 
-- 조직, 임기, 부서, 역할 기반 권한 모델
-- 첨부 파일, 댓글, 버전 이력, 자동 저장
-- 카테고리/문서 순서 변경
-- 휴지통과 복구 UI
+다음은 포함하지 않는다.
 
-현재 백엔드에는 조직 모델이 없으므로 v1은 `owner_id = AuthenticatedUser.id()`로 데이터를 격리한다. 조직 기능이 추가되면 API 경로와 응답 형태를 유지한 채 소유권 조건을 `organization_id + membership` 검사로 교체한다.
+- 조직·임기·부서·역할 모델
+- 첨부 파일, 댓글, 문서 버전, 자동 저장
+- 문서 또는 카테고리 순서 변경
+- 서버 검색, 휴지통·복구, 템플릿 관리
+- 다중 사용자 동시 편집과 충돌 해결 UI
 
-## 2. 기존 코드와 구현 위치
+조직 모델이 생기기 전에는 `AuthenticatedUser.id()`를 데이터 소유자 범위로 사용한다. 다른 사용자의 리소스는 존재 여부를 드러내지 않고 `404`로 처리한다.
 
-현재 규칙을 그대로 따른다.
+## 2. 프론트엔드에서 확인한 계약
 
-- Java 21, Spring Boot 4.1, Spring MVC, Spring Data JPA
-- 세션 인증 principal: `kr.ac.mju.linkit.auth.AuthenticatedUser`
-- 공통 오류 응답: `kr.ac.mju.linkit.common.ApiExceptionHandler.ApiError`
-- 마이그레이션: `backend/src/main/resources/db/migration/`
+| 화면 동작                                                                                   | 백엔드 계약                                                                                                     |
+| ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 사이드바는 카테고리별로 모든 인수인계를 즉시 묶어 표시한다.                                 | 목록 조회는 요약본이 아니라 문서 화면에 필요한 전체 `Handover`를 반환한다.                                      |
+| 선택한 인수인계는 별도 로딩 없이 제목, 담당자, 최근 수정, 상태, 요약과 5개 섹션을 표시한다. | `GET /handovers` 응답의 각 항목은 상세 필드를 모두 포함한다. 상세 전용 API는 이 범위에 필요하지 않다.           |
+| 검색 입력은 제목 또는 담당자를 한글 로캘 소문자 비교로 현재 상태에서 필터링한다.            | 초기 범위에 `query`나 `categoryId` 검색 파라미터를 만들지 않는다. 서버는 사용자의 전체 워크스페이스를 반환한다. |
+| 새 문서는 제목·카테고리만 필수이며 담당자 공란은 `담당자 미정`으로 저장한다.                | 생성·수정 요청은 이 기본값을 포함한 정규화된 값을 보낸다. 서버도 빈 담당자를 임의의 다른 값으로 바꾸지 않는다.  |
+| 여러 줄 텍스트 영역은 줄별 목록으로 바뀌고 빈 줄은 제거된다.                                | 각 섹션은 순서 있는 문자열 배열로 저장·반환한다.                                                                |
+| 카테고리를 삭제하면 연결된 문서도 사라진다.                                                 | 카테고리와 소속 인수인계는 한 트랜잭션에서 함께 삭제한다.                                                       |
+| 삭제 확인문은 되돌릴 수 없다고 안내한다.                                                    | 복구 API와 휴지통은 제공하지 않는다.                                                                            |
 
-추가할 패키지와 파일의 권장 최소 구조:
+프론트 모델의 상태값은 API에서도 그대로 소문자로 사용한다.
 
-```text
-backend/src/main/java/kr/ac/mju/linkit/handover/
-├── HandoverCategory.java
-├── Handover.java
-├── HandoverSectionItem.java
-├── HandoverStatus.java
-├── HandoverSectionType.java
-├── HandoverCategoryRepository.java
-├── HandoverRepository.java
-├── HandoverController.java
-├── HandoverService.java
-├── HandoverRequests.java
-├── HandoverResponses.java
-└── HandoverExceptions.java
-```
+| API 값     | 화면 표시 |
+| ---------- | --------- |
+| `draft`    | 작성 중   |
+| `review`   | 확인 필요 |
+| `complete` | 전달 완료 |
 
-파일이 250줄을 넘으면 요청/응답 또는 엔티티 단위로만 분리한다. 범용 추상화, generic CRUD 서비스, 매퍼 프레임워크는 추가하지 않는다.
+## 3. 인증과 공통 규약
 
-## 3. 데이터 모델
+모든 아래 API는 기존 세션 인증을 사용한다.
 
-### 3.1 상태
+- 로그인 후 받은 `JSESSIONID` 쿠키를 포함한다.
+- `POST`, `PATCH`, `PUT`, `DELETE`에는 먼저 `GET /api/v1/auth/csrf`에서 받은 `headerName`과 `token`을 헤더에 넣는다.
+- 비로그인 요청은 `401 AUTHENTICATION_REQUIRED`를 반환한다.
+- 현재 허용 CORS origin은 Vite 개발 서버인 `http://localhost:5173` 및 `http://127.0.0.1:5173`이다.
 
-```java
-public enum HandoverStatus {
-    DRAFT,
-    REVIEW,
-    COMPLETE
+인증 API는 현재 구현을 유지한다.
+
+| 메서드 | 경로            | 용도                                     |
+| ------ | --------------- | ---------------------------------------- |
+| `GET`  | `/auth/csrf`    | 상태 변경 요청용 CSRF 헤더명과 토큰 조회 |
+| `POST` | `/auth/sign-up` | `@mju.ac.kr` 계정 생성                   |
+| `POST` | `/auth/login`   | 세션 로그인                              |
+| `POST` | `/auth/logout`  | 현재 세션 로그아웃                       |
+| `GET`  | `/auth/me`      | 로그인 사용자 조회                       |
+
+## 4. 리소스 형태
+
+서버 ID는 UUID 문자열을 사용한다. 프론트엔드 프로토타입의 `category-{timestamp}`, `handover-{timestamp}` 형식은 로컬 상태 전용이므로 API에 유지하지 않는다.
+
+```json
+{
+  "id": "6c68b971-f7bb-4d6e-8d8c-78c4e03ee236",
+  "categoryId": "4aac8fd1-3a44-4a7e-8740-c9dd76c5a0d2",
+  "title": "대동제 운영 인수인계",
+  "owner": "기획국 김민지",
+  "status": "review",
+  "summary": "대동제 준비부터 당일 운영까지 필요한 절차입니다.",
+  "criticalNotes": ["운동장 사용 신청은 행사 8주 전까지 제출합니다."],
+  "recurringTasks": ["D-60: 장소와 예산 확정"],
+  "checklist": ["학생지원팀 대관 공문 제출"],
+  "references": ["2026 대동제 최종 예산안"],
+  "openQuestions": ["우천 시 대체 장소 확정 필요"],
+  "updatedAt": "2026-08-08T01:24:00Z"
 }
 ```
 
-프론트 매핑:
+`updatedAt`은 UTC ISO-8601 문자열이다. 현재 프로토타입은 표시용 문자열을 그대로 렌더링하므로, API 연결 시 프론트 API 경계에서 `ko-KR` 표시 문자열로 변환한다. 서버가 `오늘 오전 10:24` 같은 화면 문구를 만들지 않는다.
 
-| API | 화면 |
-|---|---|
-| `DRAFT` | 작성 중 |
-| `REVIEW` | 확인 필요 |
-| `COMPLETE` | 전달 완료 |
+카테고리 응답은 화면 모델과 동일하게 ID와 이름만 가진다.
 
-섹션 타입:
-
-```java
-public enum HandoverSectionType {
-    CRITICAL_NOTE,
-    RECURRING_TASK,
-    CHECKLIST,
-    REFERENCE,
-    OPEN_QUESTION
+```json
+{
+  "id": "4aac8fd1-3a44-4a7e-8740-c9dd76c5a0d2",
+  "name": "행사 및 기획"
 }
 ```
 
-### 3.2 테이블
+## 5. HTTP API
 
-Flyway 파일: `V2__create_handovers.sql`
-
-```sql
-create table handover_categories (
-    id uuid primary key,
-    owner_id uuid not null references users(id),
-    name varchar(60) not null,
-    version bigint not null default 0,
-    created_at timestamp with time zone not null,
-    updated_at timestamp with time zone not null,
-    deleted_at timestamp with time zone,
-    constraint ck_handover_categories_name_not_blank
-        check (char_length(trim(name)) > 0)
-);
-
-create index ix_handover_categories_owner
-    on handover_categories(owner_id, deleted_at, created_at);
-
-create table handovers (
-    id uuid primary key,
-    owner_id uuid not null references users(id),
-    category_id uuid not null references handover_categories(id),
-    title varchar(120) not null,
-    owner_name varchar(100) not null,
-    status varchar(20) not null,
-    summary varchar(2000) not null,
-    version bigint not null default 0,
-    created_at timestamp with time zone not null,
-    updated_at timestamp with time zone not null,
-    deleted_at timestamp with time zone,
-    constraint ck_handovers_title_not_blank
-        check (char_length(trim(title)) > 0),
-    constraint ck_handovers_status
-        check (status in ('DRAFT', 'REVIEW', 'COMPLETE'))
-);
-
-create index ix_handovers_owner_category
-    on handovers(owner_id, category_id, deleted_at, updated_at);
-
-create table handover_section_items (
-    id uuid primary key,
-    handover_id uuid not null references handovers(id) on delete cascade,
-    section_type varchar(30) not null,
-    content varchar(1000) not null,
-    sort_order integer not null,
-    constraint ck_handover_section_type check (
-        section_type in (
-            'CRITICAL_NOTE', 'RECURRING_TASK', 'CHECKLIST',
-            'REFERENCE', 'OPEN_QUESTION'
-        )
-    ),
-    constraint ck_handover_section_content_not_blank
-        check (char_length(trim(content)) > 0),
-    constraint uk_handover_section_order
-        unique (handover_id, section_type, sort_order)
-);
-```
-
-엔티티 규칙:
-
-- `HandoverCategory`와 `Handover`에 `@Version long version`을 둔다.
-- 삭제는 `deletedAt`을 기록하는 소프트 삭제다.
-- 조회 repository 메서드는 항상 `ownerId`와 `deletedAt is null`을 함께 조건으로 사용한다.
-- `Handover`의 섹션 항목은 `@OneToMany(cascade = ALL, orphanRemoval = true)`로 관리한다.
-- 수정 시 전달된 배열 순서대로 `sortOrder`를 0부터 다시 부여한다.
-- category의 `ownerId`와 handover의 `ownerId`는 반드시 같아야 한다.
-
-## 4. HTTP API
-
-기본 경로: `/api/v1`
-
-모든 API는 인증이 필요하다. `POST`, `PUT`, `PATCH`, `DELETE` 요청은 기존 CSRF 쿠키와 `X-XSRF-TOKEN` 헤더를 사용한다.
-
-### 4.1 카테고리
+### 5.1 카테고리
 
 #### 목록
 
@@ -173,116 +112,91 @@ GET /api/v1/handover-categories
 ```json
 {
   "items": [
-    {
-      "id": "4aac...",
-      "name": "행사 및 기획",
-      "handoverCount": 2,
-      "version": 0
-    }
+    { "id": "4aac8fd1-3a44-4a7e-8740-c9dd76c5a0d2", "name": "행사 및 기획" }
   ]
 }
 ```
 
-정렬: `created_at asc`.
+응답 순서는 생성 순서 오름차순이다. 프론트엔드는 이 순서로 사이드바 카테고리를 렌더링한다.
 
-#### 추가
+#### 생성
 
 ```http
 POST /api/v1/handover-categories
 Content-Type: application/json
+{csrfHeaderName}: {csrfToken}
 
 {"name":"회계 및 예산"}
 ```
 
-- `201 Created`
-- `Location: /api/v1/handover-categories/{id}`
-- body는 생성된 category 응답
+성공 시 `201 Created`와 생성된 카테고리를 반환한다. `Location`은 생성된 리소스 경로를 가리킨다.
 
-#### 수정
+#### 이름 수정
 
 ```http
 PATCH /api/v1/handover-categories/{categoryId}
 Content-Type: application/json
+{csrfHeaderName}: {csrfToken}
 
-{"name":"예산 및 정산","version":0}
+{"name":"예산 및 정산"}
 ```
 
-응답: `200 OK`와 갱신된 category.
+성공 시 `200 OK`와 수정된 카테고리를 반환한다.
 
 #### 삭제
 
 ```http
-DELETE /api/v1/handover-categories/{categoryId}?version=0
+DELETE /api/v1/handover-categories/{categoryId}
+{csrfHeaderName}: {csrfToken}
 ```
 
-- 해당 category와 포함된 활성 handover를 한 트랜잭션에서 소프트 삭제한다.
-- 성공: `204 No Content`.
-- 다른 사용자의 category도 존재하지 않는 것처럼 `404`를 반환한다.
+성공 시 `204 No Content`를 반환한다. 해당 카테고리에 속한 모든 인수인계도 함께 삭제한다.
 
-### 4.2 인수인계
+### 5.2 인수인계
 
-#### 목록 및 검색
+#### 전체 조회
 
 ```http
-GET /api/v1/handovers?categoryId={uuid}&query={text}
+GET /api/v1/handovers
 ```
 
-`categoryId`, `query`는 선택 사항이다. `query`는 trim 후 100자 이하이며 제목 또는 담당자 이름에서 대소문자 무시 부분 일치한다.
+응답은 각 항목이 [4절](#4-리소스-형태)의 모든 필드를 포함하는 목록이다.
 
 ```json
 {
   "items": [
     {
-      "id": "6c68...",
-      "categoryId": "4aac...",
+      "id": "6c68b971-f7bb-4d6e-8d8c-78c4e03ee236",
+      "categoryId": "4aac8fd1-3a44-4a7e-8740-c9dd76c5a0d2",
       "title": "대동제 운영 인수인계",
       "owner": "기획국 김민지",
-      "status": "REVIEW",
-      "updatedAt": "2026-08-05T01:24:00Z",
-      "version": 3
+      "status": "review",
+      "summary": "대동제 준비부터 당일 운영까지 필요한 절차입니다.",
+      "criticalNotes": [],
+      "recurringTasks": [],
+      "checklist": [],
+      "references": [],
+      "openQuestions": [],
+      "updatedAt": "2026-08-08T01:24:00Z"
     }
   ]
 }
 ```
 
-정렬: `updated_at desc, id asc`.
+정렬은 `updated_at desc, id asc`이다. 새로 생성하거나 수정한 문서가 목록의 앞에 보인다.
 
-#### 상세
-
-```http
-GET /api/v1/handovers/{handoverId}
-```
-
-```json
-{
-  "id": "6c68...",
-  "categoryId": "4aac...",
-  "title": "대동제 운영 인수인계",
-  "owner": "기획국 김민지",
-  "status": "REVIEW",
-  "summary": "대동제 준비부터 당일 운영까지...",
-  "criticalNotes": ["운동장 사용 신청은 행사 8주 전까지 제출합니다."],
-  "recurringTasks": ["D-60: 장소와 예산 확정"],
-  "checklist": ["학생지원팀 대관 공문 제출"],
-  "references": ["2026 대동제 최종 예산안"],
-  "openQuestions": ["우천 시 대체 장소 확정 필요"],
-  "createdAt": "2026-08-01T02:00:00Z",
-  "updatedAt": "2026-08-05T01:24:00Z",
-  "version": 3
-}
-```
-
-#### 추가
+#### 생성
 
 ```http
 POST /api/v1/handovers
 Content-Type: application/json
+{csrfHeaderName}: {csrfToken}
 
 {
-  "categoryId": "4aac...",
+  "categoryId": "4aac8fd1-3a44-4a7e-8740-c9dd76c5a0d2",
   "title": "대동제 운영 인수인계",
   "owner": "기획국 김민지",
-  "status": "DRAFT",
+  "status": "draft",
   "summary": "행사 운영 절차",
   "criticalNotes": [],
   "recurringTasks": [],
@@ -292,100 +206,88 @@ Content-Type: application/json
 }
 ```
 
-- category가 현재 사용자의 활성 category여야 한다.
-- `201 Created`, `Location` 헤더, 상세 응답 body.
+`201 Created`와 전체 인수인계 응답을 반환한다. `categoryId`는 현재 사용자의 카테고리여야 한다.
 
-#### 전체 수정
+#### 수정
 
 ```http
 PUT /api/v1/handovers/{handoverId}
 Content-Type: application/json
+{csrfHeaderName}: {csrfToken}
 
 {
-  "categoryId": "4aac...",
+  "categoryId": "4aac8fd1-3a44-4a7e-8740-c9dd76c5a0d2",
   "title": "대동제 운영 인수인계",
   "owner": "기획국 김민지",
-  "status": "REVIEW",
+  "status": "review",
   "summary": "갱신된 요약",
   "criticalNotes": [],
   "recurringTasks": [],
   "checklist": [],
   "references": [],
-  "openQuestions": [],
-  "version": 3
+  "openQuestions": []
 }
 ```
 
-응답: `200 OK`와 갱신된 상세 응답. 성공 시 version이 증가한다.
+`200 OK`와 갱신된 전체 인수인계 응답을 반환한다. 카테고리 변경도 이 요청으로 처리한다.
 
 #### 삭제
 
 ```http
-DELETE /api/v1/handovers/{handoverId}?version=3
+DELETE /api/v1/handovers/{handoverId}
+{csrfHeaderName}: {csrfToken}
 ```
 
-성공: `204 No Content`.
+성공 시 `204 No Content`를 반환한다.
 
-## 5. 입력 검증
+## 6. 입력 정규화와 오류
 
-Jakarta Validation을 요청 record에 적용한다.
+클라이언트 검증은 사용자 경험을 위한 것이며 서버 검증을 대체하지 않는다.
 
-| 필드 | 규칙 |
-|---|---|
-| `name` | trim 후 1–60자 |
-| `title` | trim 후 1–120자 |
-| `owner` | trim 후 1–100자, 빈 입력은 서버에서 `담당자 미정`으로 바꾸지 말고 400 |
-| `summary` | 0–2000자 |
-| 각 section 배열 | 최대 50개 |
-| 각 section item | trim 후 1–1000자 |
-| `query` | trim 후 0–100자 |
-| `version` | 0 이상 |
+| 입력             | 서버 규칙                                                              | 프론트엔드 근거                                    |
+| ---------------- | ---------------------------------------------------------------------- | -------------------------------------------------- |
+| 카테고리 `name`  | trim 후 비어 있으면 `400 VALIDATION_FAILED`                            | 카테고리 대화상자가 공백 이름을 막는다.            |
+| 인수인계 `title` | trim 후 비어 있으면 `400 VALIDATION_FAILED`                            | 제목은 유일한 필수 텍스트 입력이다.                |
+| `categoryId`     | 현재 사용자의 활성 카테고리가 아니면 `404 HANDOVER_CATEGORY_NOT_FOUND` | 선택기에는 현재 상태의 카테고리만 표시된다.        |
+| `owner`          | trim 후 빈 값은 `담당자 미정`으로 정규화해 저장                        | 저장 전 프론트가 같은 값으로 바꾼다.               |
+| `status`         | `draft`, `review`, `complete`만 허용                                   | 선택기의 세 가지 값과 일치해야 한다.               |
+| `summary`        | 빈 문자열 허용                                                         | 문서 화면은 빈 요약의 안내 문구를 제공한다.        |
+| 5개 섹션 배열    | 순서 유지, 각 항목 trim, 빈 항목 제거                                  | 텍스트 영역을 줄 배열로 바꿀 때 동일하게 처리한다. |
 
-서비스 계층에서 모든 문자열을 trim한 뒤 저장한다. 빈 section item은 조용히 제거하지 않고 `VALIDATION_FAILED`로 거부한다.
+오류 본문은 기존 `ApiError(code, message, fieldErrors)` 모양을 유지한다.
 
-## 6. 오류 계약
+| HTTP | 코드                          | 조건                                 |
+| ---: | ----------------------------- | ------------------------------------ |
+|  400 | `VALIDATION_FAILED`           | 위 입력 규칙 위반                    |
+|  401 | `AUTHENTICATION_REQUIRED`     | 로그인 세션 없음                     |
+|  403 | Spring Security 기본 응답     | CSRF 토큰 누락 또는 불일치           |
+|  404 | `HANDOVER_CATEGORY_NOT_FOUND` | 카테고리가 없거나 다른 사용자의 소유 |
+|  404 | `HANDOVER_NOT_FOUND`          | 인수인계가 없거나 다른 사용자의 소유 |
 
-기존 `ApiError(code, message, fieldErrors)` 형태를 유지한다.
+## 7. 구현과 연결 순서
 
-| HTTP | code | 조건 |
-|---|---|---|
-| 400 | `VALIDATION_FAILED` | 요청 필드 검증 실패 |
-| 404 | `HANDOVER_CATEGORY_NOT_FOUND` | category 없음, 삭제됨, 또는 다른 사용자 소유 |
-| 404 | `HANDOVER_NOT_FOUND` | handover 없음, 삭제됨, 또는 다른 사용자 소유 |
-| 409 | `HANDOVER_VERSION_CONFLICT` | category 또는 handover version 불일치 |
-| 401 | `AUTHENTICATION_REQUIRED` | 기존 SecurityConfig 처리 |
+백엔드는 현재 인증 모듈의 세션 principal과 공통 오류 응답을 재사용한다. 조직 모델이 없으므로 모든 repository 조회·변경에는 `owner_id` 조건을 포함한다.
 
-소유권 불일치는 `403`이 아니라 `404`로 응답해 다른 사용자의 리소스 존재 여부를 노출하지 않는다.
+프론트엔드 연결 때에는 다음만 바꾼다.
 
-## 7. 서비스 규칙
+1. `frontend/src/handover/api.ts`에서 위 API를 호출하고 CSRF 처리를 인증 API와 같은 방식으로 캡슐화한다.
+2. `HandoverPage`의 초기 상수 대신 카테고리와 전체 인수인계 목록을 불러온다.
+3. 생성·수정·삭제 뒤에는 서버 응답을 상태에 반영한다.
+4. `updatedAt` ISO 값을 현재 UI의 한국어 표시 문자열로 변환한다.
 
-- controller는 `@AuthenticationPrincipal AuthenticatedUser user`를 받고 `user.id()`만 service에 전달한다.
-- service의 모든 public 변경 메서드는 `@Transactional`이다.
-- repository의 `findById` 단독 호출은 금지한다. `findByIdAndOwnerIdAndDeletedAtIsNull`을 사용한다.
-- 시간은 새 `Clock`을 만들지 말고 기존 `Clock` bean을 주입해 `Instant.now(clock)`로 생성한다.
-- ID는 `UUID.randomUUID()`로 생성한다.
-- category 삭제 시 category와 child handover의 `deletedAt`을 동일한 `Instant`로 기록한다.
-- `DataIntegrityViolationException`을 일반 500으로 흘리지 말고, 재현 가능한 도메인 충돌이면 명시적 예외로 변환한다.
-- entity를 controller에서 직접 직렬화하지 않는다. response record로 변환한다.
+현재 `App.tsx`는 `/`에서 인증 여부와 관계없이 `HandoverPage`를 렌더링하고, 로그인 성공 후에도 화면 이동을 하지 않는다. 이는 API 계약이 아니라 남아 있는 프론트엔드 인증 연결 작업이다.
 
-## 8. 테스트 요구사항
+## 8. 완료 검증
 
-기존 `AuthControllerIntegrationTests` 패턴을 재사용해 HTTP 통합 테스트를 작성한다.
+최소 통합 테스트는 다음을 증명한다.
 
-최소 시나리오:
-
-1. 인증된 사용자가 category를 생성하고 목록에서 조회한다.
-2. 인증되지 않은 category 요청은 401이다.
-3. 사용자 A는 사용자 B의 category를 조회·수정·삭제할 수 없고 모두 404다.
-4. category 이름 검증 실패는 `VALIDATION_FAILED`와 `fieldErrors`를 반환한다.
-5. handover 생성 후 목록과 상세 응답의 모든 섹션 순서가 유지된다.
-6. `categoryId` 필터와 제목/담당자 검색이 동작한다.
-7. handover 수정 시 version이 증가한다.
-8. 오래된 version으로 수정/삭제하면 409 `HANDOVER_VERSION_CONFLICT`다.
-9. category 삭제 시 포함된 handover도 이후 조회되지 않는다.
-10. 사용자 A는 사용자 B의 category에 handover를 만들 수 없다.
-
-각 변경 API 테스트는 먼저 `/api/v1/auth/csrf`에서 토큰을 얻고 CSRF 헤더를 포함한다. 테스트는 결과 JSON과 DB의 소유권/삭제 상태를 함께 검증한다.
+1. 로그인 사용자가 카테고리를 생성·수정·목록 조회·삭제할 수 있다.
+2. 카테고리 삭제 후 소속 인수인계도 목록에 없다.
+3. 인수인계 목록의 한 항목만으로 프론트 문서 화면의 모든 필드와 5개 섹션을 렌더링할 수 있다.
+4. 빈 요약과 빈 섹션 배열을 저장·조회할 수 있고, 배열 순서는 유지된다.
+5. 생성·수정된 문서의 `updatedAt`은 ISO-8601 UTC 문자열이며 목록의 최신순 정렬에 반영된다.
+6. 사용자 A는 사용자 B의 카테고리·인수인계를 조회, 수정, 삭제할 수 없고 `404`를 받는다.
+7. 모든 상태 변경 요청은 CSRF 토큰 없이는 실패한다.
 
 검증 명령:
 
@@ -393,25 +295,3 @@ Jakarta Validation을 요청 record에 적용한다.
 cd backend
 ./gradlew test
 ```
-
-## 9. 프론트엔드 연결 계약
-
-백엔드 구현 후 프론트에서 다음만 교체한다.
-
-1. `frontend/src/handover/api.ts`를 만들고 category/handover 요청을 캡슐화한다.
-2. `HandoverPage`의 `INITIAL_*` state를 GET 응답으로 초기화한다.
-3. create/update/delete 핸들러를 API 호출 후 서버 응답으로 state에 반영한다.
-4. API `DRAFT | REVIEW | COMPLETE`를 프론트 `draft | review | complete`로 경계에서 변환한다.
-5. `updatedAt`은 ISO 문자열을 받아 `Intl.DateTimeFormat('ko-KR')`로 표시한다.
-6. 409 충돌 시 작성 내용을 버리지 말고 “다른 사용자가 먼저 수정했습니다” 배너와 새로고침 동작을 제공한다.
-
-프론트 모델의 표시용 `owner` 필드와 API의 `owner` 이름을 동일하게 유지한다. 사용자 ID 기반 담당자 지정은 조직/구성원 모델이 추가될 때 별도 계약으로 확장한다.
-
-## 10. 완료 조건
-
-- 위 endpoint와 오류 코드가 문서대로 동작한다.
-- 다른 사용자의 데이터가 어떤 조회/변경 경로에서도 노출되지 않는다.
-- H2 기본 프로필과 PostgreSQL 프로필 모두 V2 migration을 적용할 수 있다.
-- 전체 `./gradlew test`가 통과한다.
-- 프론트엔드에서 category와 handover CRUD 한 사이클을 API로 실행할 수 있다.
-- 범위 밖 기능이나 새 프레임워크/라이브러리를 추가하지 않는다.
