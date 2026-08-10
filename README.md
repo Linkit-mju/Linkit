@@ -18,7 +18,6 @@ cd backend
 ./gradlew bootRun
 ```
 
-백엔드 API는 `http://127.0.0.1:8080`에서 실행된다. 기본 프로필은 별도 설치가 필요 없는 인메모리 H2를 사용한다.
 
 ### 2. 프론트엔드
 
@@ -30,10 +29,6 @@ npm install
 npm run dev
 ```
 
-프론트엔드는 `http://127.0.0.1:5173`에서 실행되며 `/api` 요청을 로컬 Spring 서버로 프록시한다.
-
-- 로그인: `http://127.0.0.1:5173/login`
-- 회원가입: `http://127.0.0.1:5173/signup`
 
 ## PostgreSQL로 실행
 
