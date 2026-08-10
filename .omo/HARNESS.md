@@ -4,13 +4,15 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current task
 
-- Goal: establish a shared agent work loop backed by saved Markdown state and verification evidence.
+- Goal: create a service-fit public landing-page draft for Linkit.
 - Status: COMPLETE
 - Last updated: 2026-08-11
-- Next action: replace this task with the next active goal when work resumes.
+- Next action: gather stakeholder feedback on the landing copy and visual direction before production polish.
 
 ## Evidence index
 
+- [`final-automated-verification.md`](evidence/linkit-landing-page/final-automated-verification.md) — lint, build, integration, and affected E2E verification; `PASS`; manual visual QA waived.
+- [`implementation-cycle.md`](evidence/linkit-landing-page/implementation-cycle.md) — landing route red/green implementation cycle; `PASS`; automated focus check.
 - [`direct-edit-cjk-final-manual-qa.md`](evidence/direct-edit-cjk-final/direct-edit-cjk-final-manual-qa.md) — responsive manual QA; `PASS`; high confidence.
 - [`harness-bootstrap-manual-qa.md`](evidence/harness-bootstrap/harness-bootstrap-manual-qa.md) — shared entrypoint and state-link verification; `PASS`; high confidence.
 
@@ -24,6 +26,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: the direct-edit/CJK responsive pass has a saved manual QA record; the shared Codex/Claude harness entrypoints now read and index durable state.
+- Completed: service positioning and landing primitives are recorded; `/` renders the landing draft, `/workspace` preserves the handover surface, documentation names both routes, and automated verification passes.
 - Blockers: none recorded.
-- Verification: see the linked manual QA evidence and harness bootstrap evidence.
+- Verification: lint, production build, 3 integration tests, 2 affected Chromium E2E scenarios, production dev-tool gating, and diff integrity all pass; user explicitly opted out of manual/browser visual QA.

@@ -5,6 +5,16 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
+class ResizeObserverStub implements ResizeObserver {
+  disconnect(): void {}
+
+  observe(): void {}
+
+  unobserve(): void {}
+}
+
+globalThis.ResizeObserver = ResizeObserverStub;
+
 function matchMedia(query: string): MediaQueryList {
   return {
     addEventListener: () => undefined,

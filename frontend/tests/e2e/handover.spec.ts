@@ -4,7 +4,7 @@ test("목록에서 문서를 선택하면 해당 인수인계 내용을 표시�
   page,
 }) => {
   // Given: a visitor opens the handover workspace
-  await page.goto("/");
+  await page.goto("/workspace");
 
   // When: the visitor selects another handover document
   await page.getByRole("link", { name: /신입생 OT 준비/ }).click();

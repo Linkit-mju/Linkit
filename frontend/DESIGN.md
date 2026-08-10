@@ -4,6 +4,8 @@
 
 Linkit is a quiet, dependable handover workspace: dense enough for real operational knowledge, but never visually noisy. Its signature is a collapsible category rail that keeps the organization hierarchy visible while the selected handover reads like a calm working document.
 
+The public landing page extends that identity with a warm, document-first rhythm inspired by Notion's readable marketing surfaces. It should feel like opening a well-organized handover binder, not a generic software sales page.
+
 ## 2. Color
 
 Linkit uses `@astryxdesign/theme-neutral` without token overrides. The handover workspace uses dark mode to match the Astryx `shell-side-nav` reference; authentication keeps the existing light mode.
@@ -43,8 +45,39 @@ Font stacks come from `--font-family-body` and `--font-family-heading`. Korean t
 - Content: full-width shell with `LayoutHeader`; readable document content is constrained by Astryx `Layout` and stack primitives.
 - Breakpoint behavior: rely on `AppShell` mobile navigation at `md`; the content reflows through wrapping `HStack` primitives.
 - No handwritten layout CSS, raw layout `div`, or magic spacing values.
+- Landing decision path: hook (`hero`) → explain (`problem/benefit`) → prove (`product preview`) → convert (`final CTA`).
+- Landing sections alternate Astryx `transparent`, `section`, and `muted` surfaces. The existing Astryx spacing scale provides the generous document rhythm; no landing-only spacing scale is introduced.
 
 ## 5. Components
+
+### Landing shell
+
+- **Structure**: `AppShell` with `TopNav`, followed by stacked `Section` regions.
+- **States**: desktop navigation, collapsed mobile navigation, login link, and one primary signup action.
+- **Accessibility**: one `h1`, sequential `h2` headings, native navigation and main landmarks from Astryx, phrase-safe Korean wrapping.
+
+### Landing hero
+
+- **Structure**: centered `VStack` with an eyebrow label, display headline, supporting copy, and primary/secondary navigation links.
+- **Content job**: name the continuity problem and promise a concrete outcome without unsupported metrics.
+- **Responsive behavior**: semantic Astryx display type scales down through the theme; CTA links may wrap rather than compress.
+
+### Product preview
+
+- **Structure**: one elevated `Card` that composes `Badge`, `List`, `ListItem`, `Heading`, `Text`, and `Divider` into a credible handover document preview.
+- **Content job**: prove the product through representative service content already used in the workspace, never through a pasted screenshot.
+- **States**: review status, selected document, checklist progress, and reference metadata are expressed in text as well as color.
+
+### Benefit grid
+
+- **Structure**: responsive Astryx `Grid` containing three independently readable benefit `Card` items.
+- **Content job**: explain the service around findability, repeatable structure, and continuity between terms.
+- **Accessibility**: decorative icons are hidden from assistive technology; headings retain a sequential outline.
+
+### Final CTA
+
+- **Structure**: `Section` with a short heading, supporting sentence, and signup/login navigation.
+- **Content job**: convert only after the product has been explained and shown.
 
 ### Handover shell
 
@@ -105,3 +138,4 @@ Strategy: mixed Astryx neutral surfaces. The app shell uses tonal separation; do
 | Item | Location | Why accepted | Exit |
 |---|---|---|---|
 | Frontend prototype uses in-memory seed data | Handover workspace | Backend is intentionally deferred in this delivery | Replace state mutations with the API contract in `docs/backend-handover-spec.md` |
+| Landing proof uses representative product content instead of customer metrics or testimonials | Landing page | No verified adoption data or customer quotes exist in the repository | Replace only when approved, attributable evidence is available |

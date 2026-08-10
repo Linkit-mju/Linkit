@@ -5,7 +5,7 @@ import App from "../../src/App";
 
 describe("인수인계 페이지", () => {
   beforeEach(() => {
-    window.history.replaceState({}, "", "/");
+    window.history.replaceState({}, "", "/workspace");
   });
 
   it("목록에서 문서를 선택하면 해당 인수인계 내용을 표시한다", async () => {
