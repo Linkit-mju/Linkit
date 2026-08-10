@@ -2,6 +2,7 @@ import {Badge} from '@astryxdesign/core/Badge';
 import {Button} from '@astryxdesign/core/Button';
 import {Card} from '@astryxdesign/core/Card';
 import {Center} from '@astryxdesign/core/Center';
+import {CheckboxList, CheckboxListItem} from '@astryxdesign/core/CheckboxList';
 import {
   HStack,
   Layout,
@@ -63,18 +64,57 @@ function DocumentSection({
   );
 }
 
+function ChecklistSection({
+  items,
+  value,
+  onChange,
+}: {
+  readonly items: readonly string[];
+  readonly value: string[];
+  readonly onChange: (value: string[]) => void;
+}) {
+  return (
+    <Card>
+      <VStack gap={3}>
+        <Heading level={3}>체크리스트</Heading>
+        {items.length > 0 ? (
+          <CheckboxList
+            label="체크리스트"
+            isLabelHidden
+            value={value}
+            onChange={onChange}
+            density="balanced"
+            hasDividers>
+            {items.map((item) => (
+              <CheckboxListItem key={item} label={item} value={item} />
+            ))}
+          </CheckboxList>
+        ) : (
+          <Text type="supporting" color="secondary">
+            체크리스트가 아직 없습니다.
+          </Text>
+        )}
+      </VStack>
+    </Card>
+  );
+}
+
 export function HandoverDocument({
   categoryName,
   handover,
   onCreate,
   onDelete,
   onEdit,
+  checklistValue,
+  onChecklistChange,
 }: {
   readonly categoryName: string | undefined;
   readonly handover: Handover | undefined;
   readonly onCreate: () => void;
   readonly onDelete: () => void;
   readonly onEdit: () => void;
+  readonly checklistValue: string[];
+  readonly onChecklistChange: (value: string[]) => void;
 }) {
   if (!handover) {
     return (
@@ -184,10 +224,10 @@ export function HandoverDocument({
               items={handover.recurringTasks}
               emptyText="등록된 반복 업무가 없습니다."
             />
-            <DocumentSection
-              title="체크리스트"
+            <ChecklistSection
               items={handover.checklist}
-              emptyText="체크리스트가 아직 없습니다."
+              value={checklistValue}
+              onChange={onChecklistChange}
             />
             <DocumentSection
               title="연락처와 참고 자료"

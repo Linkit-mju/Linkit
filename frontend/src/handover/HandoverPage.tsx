@@ -74,6 +74,9 @@ export function HandoverPage() {
   const [selectedId, setSelectedId] = useState<HandoverId | undefined>(
     INITIAL_HANDOVERS[0]?.id,
   );
+  const [completedChecklistItems, setCompletedChecklistItems] = useState<
+    Partial<Record<HandoverId, string[]>>
+  >({});
   const [search, setSearch] = useState('');
   const [isHandoverDialogOpen, setHandoverDialogOpen] = useState(false);
   const [editingHandover, setEditingHandover] = useState<Handover>();
@@ -210,6 +213,17 @@ export function HandoverPage() {
           handover={selectedHandover}
           categoryName={selectedCategory?.name}
           onCreate={openNewHandover}
+          checklistValue={
+            selectedHandover ? completedChecklistItems[selectedHandover.id] ?? [] : []
+          }
+          onChecklistChange={(value) => {
+            if (!selectedHandover) return;
+
+            setCompletedChecklistItems((current) => ({
+              ...current,
+              [selectedHandover.id]: value,
+            }));
+          }}
           onEdit={() => {
             if (selectedHandover) {
               setEditingHandover(selectedHandover);
