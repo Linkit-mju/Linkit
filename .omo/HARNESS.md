@@ -4,8 +4,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current task
 
-- Goal: connect the handover page category and document CRUD flows to the Spring API, then create the PR.
-- Status: IN PROGRESS
+- Goal: connect handover CRUD and authentication-aware frontend routing to the Spring API, then create the PR.
+- Status: IN PROGRESS — route guard committed at `f4beeb5`; PR handoff pending
 - Last updated: 2026-08-12
 - Next action: commit and push the verified integration, then create the cross-fork PR.
 
@@ -20,6 +20,9 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - [`harness-bootstrap-manual-qa.md`](evidence/harness-bootstrap/harness-bootstrap-manual-qa.md) — shared entrypoint and state-link verification; `PASS`; high confidence.
 - [`79b87c76-manual-qa.md`](evidence/handover-api-integration/79b87c76-manual-qa.md) — exact-commit runtime/manual QA matrix; `PASS`.
 - [`environment-config.md`](evidence/handover-api-integration/environment-config.md) — development API target isolation and bundle check; `PASS`.
+- [`red.md`](evidence/auth-routing/red.md) — missing anonymous/authenticated route redirects; expected `FAIL`.
+- [`green.md`](evidence/auth-routing/green.md) — focused authentication-routing integration tests; `PASS`.
+- [`verification.md`](evidence/auth-routing/verification.md) — lint, tests, build, strict scan, and route-surface verification; `PASS`.
 
 ## Work loop
 
@@ -31,6 +34,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: connected handover category/document CRUD to the Spring API, serialized saves against duplicate submissions, normalized HTTP methods, stabilized the H2 dev lifecycle, covered category cascade behavior, and moved the development proxy target into an ignored frontend `.env` file.
-- Blockers: none; visual QA is explicitly excluded by the user.
-- Verification: all automated gates pass after review remediation and environment isolation; see `verification.md`, `review-remediation.md`, and `environment-config.md`. Two pre-existing transitive development dependency advisories remain outside this change.
+- Completed: connected handover CRUD and committed a `/api/v1/auth/me` session guard for authenticated/anonymous route redirects at `f4beeb5`.
+- Blockers: none; Chromium and screenshot QA are explicitly excluded by the user.
+- Verification: routing lint, tests, build, strict scan, and jsdom route-surface checks pass; see `evidence/auth-routing/verification.md`. Existing backend and handover verification remains recorded under `evidence/handover-api-integration/`.

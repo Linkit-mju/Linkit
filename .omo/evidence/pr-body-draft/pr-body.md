@@ -4,11 +4,11 @@ Date: 2026-08-11
 
 ## Scope evidence
 
-- Base comparison: `origin/main...HEAD`
-- Branch: `feat/handover` at `9975c28`
-- Commits: 8
-- Files: 45
-- Diff: 4,375 insertions, 103 deletions
+- Base comparison: `upstream/main...HEAD`
+- Branch: `feat/handover` at `f4beeb5`
+- Commits: 16
+- Files: 61
+- Diff: 5,324 insertions, 138 deletions
 - Backend: user-scoped category and handover CRUD, validation/error responses, Flyway migration, integration tests
 - Frontend: authenticated handover API integration, category/document dialogs, search, responsive document view, Vitest and Playwright coverage
 - Explicit boundary: checklist completion remains session-local because the backend API has no completion-state field
@@ -18,10 +18,11 @@ Date: 2026-08-11
 | Command | Result | Verdict |
 |---|---|---|
 | `env JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew test` | `BUILD SUCCESSFUL` | PASS |
-| `npm test` | 2 test files, 2 tests passed | PASS |
-| `npm run test:e2e` | 2 Chromium tests passed | PASS |
+| `npm run lint` | ESLint exited 0 | PASS |
+| `npm test` | 2 test files, 5 tests passed | PASS |
+| latest authentication-routing Chromium run | omitted at the user's request | SKIPPED |
 | `npm run build` | TypeScript and Vite build succeeded | PASS |
-| real-backend handover E2E | create, reload, update, reload, delete, reload | PASS |
+| earlier real-backend handover E2E | create, reload, update, reload, delete, reload | PASS |
 | `git diff --check` | no whitespace errors | PASS |
 
 ## Draft verdict
@@ -53,6 +54,7 @@ The proposed PR body reflects the completed handover API integration and include
 - 템플릿 기반 문서 생성과 삭제 확인 흐름 추가
 - 세션·CSRF 기반 백엔드 API 목록 조회 및 CRUD 연동
 - UUID·ISO 시각 응답 검증과 서버 응답 기반 화면 상태 반영
+- 세션 인증 상태에 따른 보호/인증 경로 자동 이동과 로그인 성공 후 워크스페이스 연결
 - 모바일·태블릿·데스크톱 반응형 레이아웃 및 한글 줄바꿈 개선
 
 ### 백엔드
@@ -79,14 +81,14 @@ The proposed PR body reflects the completed handover API integration and include
 ## 검증
 
 - [x] `env JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew test`
+- [x] `npm run lint`
 - [x] `npm test`
-- [x] `npm run test:e2e`
 - [x] `npm run build`
 
 ## 참고 사항
 
-- 인수인계 화면 범위만 API에 연결했으며 로그인 성공 후 자동 이동은 포함하지 않았습니다.
+- 인증은 별도 JWT를 클라이언트에 저장하지 않고 기존 Spring Security 세션 쿠키와 `/api/v1/auth/me`를 기준으로 판정합니다.
 - 체크리스트 완료 표시는 백엔드 계약에 필드가 없어 현재 세션에서만 유지됩니다.
-- 요청에 따라 별도 화면 QA는 생략했고, 실제 브라우저 기반 기능 E2E만 수행했습니다.
+- 요청에 따라 이번 인증 라우팅 변경의 Chromium 및 화면 QA는 생략했습니다.
 - 프론트엔드 프로덕션 빌드는 성공하지만 500 kB 초과 청크 경고가 있습니다.
 ```
