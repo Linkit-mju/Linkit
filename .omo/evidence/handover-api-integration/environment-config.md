@@ -7,7 +7,7 @@
 
 - The browser continues to call the same-origin relative path `/api`.
 - Vite reads the development-only proxy target from `frontend/.env` as `API_PROXY_TARGET`.
-- `frontend/.env` is ignored by Git; `frontend/.env.example` documents the required key.
+- `frontend/.env` is ignored by Git; README documents the required key without committing a server address.
 - The variable deliberately has no `VITE_` prefix, so Vite does not expose it to client code.
 
 ## Verification

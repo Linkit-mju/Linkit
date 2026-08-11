@@ -11,10 +11,10 @@
 
 ## 로컬 실행
 
-프론트엔드 개발 서버가 연결할 백엔드 주소는 Git에 포함되지 않는 `.env`에서 관리합니다.
+프론트엔드 개발 서버가 연결할 백엔드 주소는 Git에 포함되지 않는 `frontend/.env`에서 관리합니다. 파일을 만들고 다음 값을 설정하세요.
 
-```bash
-cp frontend/.env.example frontend/.env
+```dotenv
+API_PROXY_TARGET=<백엔드 서버 주소>
 ```
 
 ### 1. 백엔드

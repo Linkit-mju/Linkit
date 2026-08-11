@@ -7,4 +7,3 @@ backend/build/
 *.tsbuildinfo
 .env
 .env.*
-!.env.example
