@@ -23,6 +23,20 @@ Object.defineProperty(window, "matchMedia", {
   writable: true,
 });
 
+Object.defineProperty(window, "scrollTo", {
+  value: () => undefined,
+  writable: true,
+});
+
+HTMLDialogElement.prototype.showModal ??= function showModal() {
+  this.open = true;
+};
+
+HTMLDialogElement.prototype.close ??= function close() {
+  this.open = false;
+  this.dispatchEvent(new Event("close"));
+};
+
 afterEach(() => {
   cleanup();
   window.history.replaceState({}, "", "/");

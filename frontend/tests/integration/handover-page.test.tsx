@@ -1,7 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "../../src/App";
+import { createCategory } from "../../src/handover/api";
+import { CategorySchema, type Category } from "../../src/handover/model";
 
 vi.mock("../../src/handover/api", () => ({
   createCategory: vi.fn(),
@@ -67,5 +69,38 @@ describe("인수인계 페이지", () => {
       await screen.findByRole("heading", { name: "신입생 OT 준비" }),
     ).toBeVisible();
     expect(screen.getByText("기획국 박서준")).toBeVisible();
+  });
+
+  it("카테고리 저장 중 중복 제출을 한 번만 처리한다", async () => {
+    let resolveCreate: ((category: Category) => void) | undefined;
+    vi.mocked(createCategory).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        }),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "카테고리 추가" }),
+    );
+    const dialog = screen.getByRole("dialog");
+    await user.type(within(dialog).getByLabelText(/카테고리 이름/), "신규");
+    const form = document.getElementById("category-editor-form");
+    expect(form).not.toBeNull();
+    if (!form) return;
+
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+    expect(createCategory).toHaveBeenCalledTimes(1);
+
+    resolveCreate?.(
+      CategorySchema.parse({
+        id: "00000000-0000-4000-8000-000000000004",
+        name: "신규",
+      }),
+    );
+    await waitFor(() => expect(dialog).not.toBeInTheDocument());
   });
 });

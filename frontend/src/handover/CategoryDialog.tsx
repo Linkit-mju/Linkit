@@ -15,13 +15,15 @@ const FORM_ID = 'category-editor-form';
 export function CategoryDialog({
   category,
   isOpen,
+  isSaving,
   onClose,
   onSave,
 }: {
   readonly category: Category | undefined;
   readonly isOpen: boolean;
+  readonly isSaving: boolean;
   readonly onClose: () => void;
-  readonly onSave: (name: string) => void;
+  readonly onSave: (name: string) => Promise<void>;
 }) {
   const [name, setName] = useState(category?.name ?? '');
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -74,6 +76,7 @@ export function CategoryDialog({
                 variant="primary"
                 type="submit"
                 form={FORM_ID}
+                isDisabled={isSaving}
               />
             </HStack>
           </LayoutFooter>

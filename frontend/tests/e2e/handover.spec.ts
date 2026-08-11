@@ -1,4 +1,5 @@
 import {expect, test, type BrowserContext} from '@playwright/test';
+import {CategorySchema} from '../../src/handover/model';
 
 type CsrfToken = {
   readonly headerName: string;
@@ -29,13 +30,14 @@ async function postWithCsrf(
   context: BrowserContext,
   path: string,
   data: Record<string, unknown>,
-): Promise<void> {
+): Promise<unknown> {
   const token = await csrf(context);
   const response = await context.request.post(path, {
     data,
     headers: {[token.headerName]: token.token},
   });
   expect(response.ok()).toBe(true);
+  return response.status() === 204 ? undefined : response.json();
 }
 
 async function signUpAndLogin(context: BrowserContext): Promise<void> {
@@ -99,4 +101,62 @@ test('인수인계 생성·수정·삭제가 서버에 반영된다', async ({pa
   await page.getByRole('button', {name: '인수인계 삭제'}).click();
   await page.reload();
   await expect(page.getByRole('heading', {name: '서버 수정 문서'})).toHaveCount(0);
+});
+
+test('카테고리 수정과 삭제 cascade가 서버에 반영된다', async ({page}) => {
+  await signUpAndLogin(page.context());
+  const category = CategorySchema.parse(
+    await postWithCsrf(page.context(), '/api/v1/handover-categories', {
+      name: '수정 전 카테고리',
+    }),
+  );
+  await postWithCsrf(page.context(), '/api/v1/handovers', {
+    categoryId: category.id,
+    title: 'cascade 확인 문서',
+    owner: '연동 담당자',
+    status: 'draft',
+    summary: '',
+    criticalNotes: [],
+    recurringTasks: [],
+    checklist: [],
+    references: [],
+    openQuestions: [],
+  });
+  await page.goto('/');
+  await expect(page.getByRole('heading', {name: 'cascade 확인 문서'})).toBeVisible();
+
+  await page.getByRole('button', {name: '수정 전 카테고리 카테고리 메뉴'}).click();
+  await page.getByRole('menuitem', {name: '이름 수정'}).click();
+  const categoryDialog = page.getByRole('dialog');
+  await categoryDialog.getByLabel('카테고리 이름').fill('수정 후 카테고리');
+  const patchResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith(`/api/v1/handover-categories/${category.id}`) &&
+      response.request().method().toUpperCase() === 'PATCH',
+  );
+  await categoryDialog.getByRole('button', {name: '변경 저장'}).click();
+  const updateCategoryResponse = await patchResponse;
+  expect(updateCategoryResponse.status()).toBe(200);
+  await page.reload();
+  await expect(
+    page
+      .getByRole('navigation', {name: 'Side navigation'})
+      .getByText('수정 후 카테고리', {exact: true}),
+  ).toBeVisible();
+
+  await page.getByRole('button', {name: '수정 후 카테고리 카테고리 메뉴'}).click();
+  await page.getByRole('menuitem', {name: '카테고리 삭제'}).click();
+  const deleteResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith(`/api/v1/handover-categories/${category.id}`) &&
+      response.request().method().toUpperCase() === 'DELETE',
+  );
+  await page.getByRole('button', {name: '카테고리 삭제'}).click();
+  expect((await deleteResponse).status()).toBe(204);
+  await page.reload();
+  await expect(page.getByText('수정 후 카테고리', {exact: true})).toHaveCount(0);
+  await expect(page.getByRole('heading', {name: 'cascade 확인 문서'})).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', {name: '인수인계를 선택해주세요'}),
+  ).toBeVisible();
 });

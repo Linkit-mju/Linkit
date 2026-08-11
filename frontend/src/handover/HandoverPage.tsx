@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {AlertDialog} from '@astryxdesign/core/AlertDialog';
 import {AppShell} from '@astryxdesign/core/AppShell';
 import {Center} from '@astryxdesign/core/Center';
@@ -59,6 +59,10 @@ function deleteCopy(
 export function HandoverPage() {
   const toast = useToast();
   const workspace = useHandoverWorkspace();
+  const handoverSaveInFlight = useRef(false);
+  const categorySaveInFlight = useRef(false);
+  const [isSavingHandover, setSavingHandover] = useState(false);
+  const [isSavingCategory, setSavingCategory] = useState(false);
   const [search, setSearch] = useState('');
   const [isHandoverDialogOpen, setHandoverDialogOpen] = useState(false);
   const [editingHandover, setEditingHandover] = useState<Handover>();
@@ -84,6 +88,9 @@ export function HandoverPage() {
   }
 
   async function saveHandover(draft: HandoverDraft): Promise<void> {
+    if (handoverSaveInFlight.current) return;
+    handoverSaveInFlight.current = true;
+    setSavingHandover(true);
     try {
       await workspace.saveHandover(editingHandover, draft);
       setHandoverDialogOpen(false);
@@ -96,10 +103,16 @@ export function HandoverPage() {
     } catch (error) {
       if (!(error instanceof Error)) throw error;
       toast({body: error.message, uniqueID: 'handover-save-error'});
+    } finally {
+      handoverSaveInFlight.current = false;
+      setSavingHandover(false);
     }
   }
 
   async function saveCategory(name: string): Promise<void> {
+    if (categorySaveInFlight.current) return;
+    categorySaveInFlight.current = true;
+    setSavingCategory(true);
     try {
       await workspace.saveCategory(editingCategory, name);
       setCategoryDialogOpen(false);
@@ -112,6 +125,9 @@ export function HandoverPage() {
     } catch (error) {
       if (!(error instanceof Error)) throw error;
       toast({body: error.message, uniqueID: 'category-save-error'});
+    } finally {
+      categorySaveInFlight.current = false;
+      setSavingCategory(false);
     }
   }
 
@@ -209,6 +225,7 @@ export function HandoverPage() {
         <HandoverDialog
           categories={workspace.categories}
           handover={editingHandover}
+          isSaving={isSavingHandover}
           isOpen
           onClose={() => setHandoverDialogOpen(false)}
           onSave={saveHandover}
@@ -227,6 +244,7 @@ export function HandoverPage() {
         <CategoryDialog
           category={editingCategory}
           isOpen
+          isSaving={isSavingCategory}
           onClose={() => setCategoryDialogOpen(false)}
           onSave={saveCategory}
         />

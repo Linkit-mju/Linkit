@@ -68,6 +68,7 @@ export function HandoverDialog({
   categories,
   handover,
   isOpen,
+  isSaving,
   onClose,
   onSave,
   template,
@@ -75,8 +76,9 @@ export function HandoverDialog({
   readonly categories: readonly Category[];
   readonly handover: Handover | undefined;
   readonly isOpen: boolean;
+  readonly isSaving: boolean;
   readonly onClose: () => void;
-  readonly onSave: (draft: HandoverDraft) => void;
+  readonly onSave: (draft: HandoverDraft) => Promise<void>;
   readonly template: HandoverTemplate | undefined;
 }) {
   const [fields, setFields] = useState<EditorFields>(() =>
@@ -238,6 +240,7 @@ export function HandoverDialog({
                 variant="primary"
                 type="submit"
                 form={HANDOVER_FORM_ID}
+                isDisabled={isSaving}
               />
             </HStack>
           </LayoutFooter>

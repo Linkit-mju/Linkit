@@ -70,3 +70,14 @@ cd ../backend
 | GET | `/api/v1/auth/me` | 로그인 사용자 조회 |
 
 회원가입과 로그인 이메일은 서버에서 공백 제거와 소문자 변환 후 검사한다. 정확히 `@mju.ac.kr` 도메인을 사용하는 이메일만 가입할 수 있다.
+
+## 인수인계 API
+
+| Method | Path | 설명 |
+|---|---|---|
+| GET, POST | `/api/v1/handover-categories` | 카테고리 목록 조회·생성 |
+| PATCH, DELETE | `/api/v1/handover-categories/{categoryId}` | 카테고리 수정·삭제 |
+| GET, POST | `/api/v1/handovers` | 인수인계 목록 조회·생성 |
+| PUT, DELETE | `/api/v1/handovers/{handoverId}` | 인수인계 수정·삭제 |
+
+모든 인수인계 데이터는 로그인 사용자별로 분리되며, 상태 변경 요청에는 CSRF 토큰이 필요하다.

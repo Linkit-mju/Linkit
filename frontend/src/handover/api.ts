@@ -28,7 +28,7 @@ export async function getHandoverWorkspace(): Promise<HandoverWorkspace> {
 
 export function createCategory(name: string): Promise<Category> {
   return requestJson('/api/v1/handover-categories', CategorySchema, {
-    method: 'post',
+    method: 'POST',
     json: {name},
   });
 }
@@ -37,19 +37,19 @@ export function updateCategory(category: Category, name: string): Promise<Catego
   return requestJson(
     `/api/v1/handover-categories/${category.id}`,
     CategorySchema,
-    {method: 'patch', json: {name}},
+    {method: 'PATCH', json: {name}},
   );
 }
 
 export function deleteCategory(categoryId: CategoryId): Promise<void> {
   return requestVoid(`/api/v1/handover-categories/${categoryId}`, {
-    method: 'delete',
+    method: 'DELETE',
   });
 }
 
 export function createHandover(draft: HandoverDraft): Promise<Handover> {
   return requestJson('/api/v1/handovers', HandoverSchema, {
-    method: 'post',
+    method: 'POST',
     json: draft,
   });
 }
@@ -59,11 +59,11 @@ export function updateHandover(
   draft: HandoverDraft,
 ): Promise<Handover> {
   return requestJson(`/api/v1/handovers/${handoverId}`, HandoverSchema, {
-    method: 'put',
+    method: 'PUT',
     json: draft,
   });
 }
 
 export function deleteHandover(handoverId: HandoverId): Promise<void> {
-  return requestVoid(`/api/v1/handovers/${handoverId}`, {method: 'delete'});
+  return requestVoid(`/api/v1/handovers/${handoverId}`, {method: 'DELETE'});
 }

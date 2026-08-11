@@ -13,6 +13,7 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 - [`red.md`](evidence/handover-api-integration/red.md) — reload persistence E2E fails before API integration; expected `FAIL`.
 - [`verification.md`](evidence/handover-api-integration/verification.md) — frontend/backend/full real-API E2E verification; `PASS`.
+- [`review-remediation.md`](evidence/handover-api-integration/review-remediation.md) — post-implementation review findings and fixes; `PASS`.
 - [`pr-body.md`](evidence/pr-body-draft/pr-body.md) — PR scope and current verification results; `PASS`.
 - [`pr-creation-diagnosis.md`](evidence/pr-creation-diagnosis/pr-creation-diagnosis.md) — fork/upstream branch and PR-path diagnosis; `PASS`.
 - [`direct-edit-cjk-final-manual-qa.md`](evidence/direct-edit-cjk-final/direct-edit-cjk-final-manual-qa.md) — responsive manual QA; `PASS`; high confidence.
@@ -28,6 +29,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: connected handover category/document CRUD to the Spring API with CSRF, UUID/Instant validation, server-backed React state, and real-backend CRUD E2E coverage.
+- Completed: connected handover category/document CRUD to the Spring API, serialized saves against duplicate submissions, normalized HTTP methods, stabilized the H2 dev lifecycle, and covered category cascade behavior.
 - Blockers: none; visual QA is explicitly excluded by the user.
-- Verification: all automated gates pass; see `verification.md`. Two pre-existing transitive development dependency advisories remain outside this change.
+- Verification: all automated gates pass after review remediation; see `verification.md` and `review-remediation.md`. Two pre-existing transitive development dependency advisories remain outside this change.
