@@ -6,7 +6,7 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 - Goal: connect the handover page category and document CRUD flows to the Spring API, then create the PR.
 - Status: IN PROGRESS
-- Last updated: 2026-08-11
+- Last updated: 2026-08-12
 - Next action: commit and push the verified integration, then create the cross-fork PR.
 
 ## Evidence index
@@ -18,6 +18,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - [`pr-creation-diagnosis.md`](evidence/pr-creation-diagnosis/pr-creation-diagnosis.md) — fork/upstream branch and PR-path diagnosis; `PASS`.
 - [`direct-edit-cjk-final-manual-qa.md`](evidence/direct-edit-cjk-final/direct-edit-cjk-final-manual-qa.md) — responsive manual QA; `PASS`; high confidence.
 - [`harness-bootstrap-manual-qa.md`](evidence/harness-bootstrap/harness-bootstrap-manual-qa.md) — shared entrypoint and state-link verification; `PASS`; high confidence.
+- [`79b87c76-manual-qa.md`](evidence/handover-api-integration/79b87c76-manual-qa.md) — exact-commit runtime/manual QA matrix; `PASS`.
+- [`environment-config.md`](evidence/handover-api-integration/environment-config.md) — development API target isolation and bundle check; `PASS`.
 
 ## Work loop
 
@@ -29,6 +31,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: connected handover category/document CRUD to the Spring API, serialized saves against duplicate submissions, normalized HTTP methods, stabilized the H2 dev lifecycle, and covered category cascade behavior.
+- Completed: connected handover category/document CRUD to the Spring API, serialized saves against duplicate submissions, normalized HTTP methods, stabilized the H2 dev lifecycle, covered category cascade behavior, and moved the development proxy target into an ignored frontend `.env` file.
 - Blockers: none; visual QA is explicitly excluded by the user.
-- Verification: all automated gates pass after review remediation; see `verification.md` and `review-remediation.md`. Two pre-existing transitive development dependency advisories remain outside this change.
+- Verification: all automated gates pass after review remediation and environment isolation; see `verification.md`, `review-remediation.md`, and `environment-config.md`. Two pre-existing transitive development dependency advisories remain outside this change.

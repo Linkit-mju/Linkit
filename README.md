@@ -11,6 +11,12 @@
 
 ## 로컬 실행
 
+프론트엔드 개발 서버가 연결할 백엔드 주소는 Git에 포함되지 않는 `.env`에서 관리합니다.
+
+```bash
+cp frontend/.env.example frontend/.env
+```
+
 ### 1. 백엔드
 
 ```bash
