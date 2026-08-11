@@ -5,7 +5,7 @@ import {loadEnv} from 'vite';
 export default defineConfig(({command, mode}) => {
   const {API_PROXY_TARGET} = loadEnv(mode, '.', '');
 
-  if (command === 'serve' && !API_PROXY_TARGET) {
+  if (command === 'serve' && mode !== 'test' && !API_PROXY_TARGET) {
     throw new Error('API_PROXY_TARGET must be set in frontend/.env');
   }
 

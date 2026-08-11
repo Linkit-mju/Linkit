@@ -14,6 +14,7 @@
 
 - `npm run lint`: PASS.
 - `npm test -- --run`: PASS, 2 files / 3 tests.
+- `API_PROXY_TARGET='' npm test -- --run`: PASS; clean-clone unit tests do not require the ignored local file.
 - `npm run build`: PASS.
 - `npm run test:e2e`: PASS, 3 Chromium scenarios against the real backend.
 - `git check-ignore -v frontend/.env`: PASS; the local file is ignored.
