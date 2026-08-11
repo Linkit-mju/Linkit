@@ -38,6 +38,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/csrf",
                                 "/api/v1/auth/sign-up",
                                 "/api/v1/auth/login",
+                                "/api/v1/auth/email-verifications/confirm",
+                                "/api/v1/auth/email-verifications/resend",
                                 "/h2-console/**"
                         ).permitAll()
                         .anyRequest().authenticated())
