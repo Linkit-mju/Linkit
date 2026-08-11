@@ -5,9 +5,9 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 ## Current task
 
 - Goal: connect handover CRUD and authentication-aware frontend routing to the Spring API, then create the PR.
-- Status: IN PROGRESS — route guard committed at `f4beeb5`; PR handoff pending
+- Status: READY FOR PR — route guard verified, committed, and pushed
 - Last updated: 2026-08-12
-- Next action: commit and push the verified integration, then create the cross-fork PR.
+- Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
 
@@ -23,6 +23,7 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - [`red.md`](evidence/auth-routing/red.md) — missing anonymous/authenticated route redirects; expected `FAIL`.
 - [`green.md`](evidence/auth-routing/green.md) — focused authentication-routing integration tests; `PASS`.
 - [`verification.md`](evidence/auth-routing/verification.md) — lint, tests, build, strict scan, and route-surface verification; `PASS`.
+- [`pr-handoff.md`](evidence/auth-routing/pr-handoff.md) — pushed branch, compare URL, and PR body location; `PASS`.
 
 ## Work loop
 
@@ -35,5 +36,5 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 ## Current handoff
 
 - Completed: connected handover CRUD and committed a `/api/v1/auth/me` session guard for authenticated/anonymous route redirects at `f4beeb5`.
-- Blockers: none; Chromium and screenshot QA are explicitly excluded by the user.
+- Blockers: none; Chromium and screenshot QA are explicitly excluded, and browser PR submission is handed to the user.
 - Verification: routing lint, tests, build, strict scan, and jsdom route-surface checks pass; see `evidence/auth-routing/verification.md`. Existing backend and handover verification remains recorded under `evidence/handover-api-integration/`.
