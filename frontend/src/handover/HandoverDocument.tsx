@@ -14,7 +14,7 @@ import {List, ListItem} from '@astryxdesign/core/List';
 import {MoreMenu} from '@astryxdesign/core/MoreMenu';
 import {Heading, Text} from '@astryxdesign/core/Text';
 import type {Handover, HandoverStatus} from './model';
-import {statusLabel} from './model';
+import {formatUpdatedAt, statusLabel} from './model';
 
 const STATUS_VARIANT = {
   draft: 'neutral',
@@ -188,7 +188,7 @@ export function HandoverDocument({
                 <VStack gap={1}>
                   <Text type="label">최근 수정</Text>
                   <Text type="supporting" color="secondary">
-                    {handover.updatedAt}
+                    {formatUpdatedAt(handover.updatedAt)}
                   </Text>
                 </VStack>
                 <VStack gap={1}>

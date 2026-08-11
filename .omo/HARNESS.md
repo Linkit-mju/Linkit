@@ -4,13 +4,17 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current task
 
-- Goal: establish a shared agent work loop backed by saved Markdown state and verification evidence.
-- Status: COMPLETE
+- Goal: connect the handover page category and document CRUD flows to the Spring API, then create the PR.
+- Status: IN PROGRESS
 - Last updated: 2026-08-11
-- Next action: replace this task with the next active goal when work resumes.
+- Next action: commit and push the verified integration, then create the cross-fork PR.
 
 ## Evidence index
 
+- [`red.md`](evidence/handover-api-integration/red.md) — reload persistence E2E fails before API integration; expected `FAIL`.
+- [`verification.md`](evidence/handover-api-integration/verification.md) — frontend/backend/full real-API E2E verification; `PASS`.
+- [`pr-body.md`](evidence/pr-body-draft/pr-body.md) — PR scope and current verification results; `PASS`.
+- [`pr-creation-diagnosis.md`](evidence/pr-creation-diagnosis/pr-creation-diagnosis.md) — fork/upstream branch and PR-path diagnosis; `PASS`.
 - [`direct-edit-cjk-final-manual-qa.md`](evidence/direct-edit-cjk-final/direct-edit-cjk-final-manual-qa.md) — responsive manual QA; `PASS`; high confidence.
 - [`harness-bootstrap-manual-qa.md`](evidence/harness-bootstrap/harness-bootstrap-manual-qa.md) — shared entrypoint and state-link verification; `PASS`; high confidence.
 
@@ -24,6 +28,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: the direct-edit/CJK responsive pass has a saved manual QA record; the shared Codex/Claude harness entrypoints now read and index durable state.
-- Blockers: none recorded.
-- Verification: see the linked manual QA evidence and harness bootstrap evidence.
+- Completed: connected handover category/document CRUD to the Spring API with CSRF, UUID/Instant validation, server-backed React state, and real-backend CRUD E2E coverage.
+- Blockers: none; visual QA is explicitly excluded by the user.
+- Verification: all automated gates pass; see `verification.md`. Two pre-existing transitive development dependency advisories remain outside this change.

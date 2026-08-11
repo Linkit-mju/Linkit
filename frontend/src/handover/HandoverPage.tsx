@@ -1,6 +1,8 @@
 import {useState} from 'react';
 import {AlertDialog} from '@astryxdesign/core/AlertDialog';
 import {AppShell} from '@astryxdesign/core/AppShell';
+import {Center} from '@astryxdesign/core/Center';
+import {Text} from '@astryxdesign/core/Text';
 import {useToast} from '@astryxdesign/core/Toast';
 import {CategoryDialog} from './CategoryDialog';
 import {HandoverDocument} from './HandoverDocument';
@@ -9,27 +11,16 @@ import {HandoverSideNav} from './HandoverSideNav';
 import {TemplateDialog} from './TemplateDialog';
 import {
   type Category,
-  type CategoryId,
   type Handover,
   type HandoverDraft,
-  type HandoverId,
   type HandoverTemplate,
   HANDOVER_TEMPLATES,
-  INITIAL_CATEGORIES,
-  INITIAL_HANDOVERS,
 } from './model';
+import {useHandoverWorkspace} from './useHandoverWorkspace';
 
 type DeleteTarget =
   | {readonly kind: 'category'; readonly category: Category}
   | {readonly kind: 'handover'; readonly handover: Handover};
-
-function categoryId(): CategoryId {
-  return `category-${Date.now()}`;
-}
-
-function handoverId(): HandoverId {
-  return `handover-${Date.now()}`;
-}
 
 function assertNever(value: never): never {
   throw new TypeError(`처리할 수 없는 삭제 대상: ${String(value)}`);
@@ -67,16 +58,7 @@ function deleteCopy(
 
 export function HandoverPage() {
   const toast = useToast();
-  const [categories, setCategories] =
-    useState<readonly Category[]>(INITIAL_CATEGORIES);
-  const [handovers, setHandovers] =
-    useState<readonly Handover[]>(INITIAL_HANDOVERS);
-  const [selectedId, setSelectedId] = useState<HandoverId | undefined>(
-    INITIAL_HANDOVERS[0]?.id,
-  );
-  const [completedChecklistItems, setCompletedChecklistItems] = useState<
-    Partial<Record<HandoverId, string[]>>
-  >({});
+  const workspace = useHandoverWorkspace();
   const [search, setSearch] = useState('');
   const [isHandoverDialogOpen, setHandoverDialogOpen] = useState(false);
   const [editingHandover, setEditingHandover] = useState<Handover>();
@@ -86,13 +68,7 @@ export function HandoverPage() {
   const [editingCategory, setEditingCategory] = useState<Category>();
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>();
 
-  const selectedHandover = handovers.find(
-    (handover) => handover.id === selectedId,
-  );
-  const selectedCategory = categories.find(
-    (category) => category.id === selectedHandover?.categoryId,
-  );
-  const alertCopy = deleteCopy(deleteTarget, handovers);
+  const alertCopy = deleteCopy(deleteTarget, workspace.handovers);
 
   function openNewHandover() {
     if (HANDOVER_TEMPLATES.length > 1) return setTemplateDialogOpen(true);
@@ -100,85 +76,66 @@ export function HandoverPage() {
     selectTemplate(HANDOVER_TEMPLATES[0]);
   }
 
-  function selectTemplate(template: HandoverTemplate) {
-    setTemplateDialogOpen(false); setEditingHandover(undefined); setSelectedTemplate(template);
+  function selectTemplate(template: HandoverTemplate): void {
+    setTemplateDialogOpen(false);
+    setEditingHandover(undefined);
+    setSelectedTemplate(template);
     setHandoverDialogOpen(true);
   }
 
-  function saveHandover(draft: HandoverDraft) {
-    if (editingHandover) {
-      setHandovers((current) =>
-        current.map((handover) =>
-          handover.id === editingHandover.id
-            ? {...handover, ...draft, updatedAt: '방금 전'}
-            : handover,
-        ),
-      );
-    } else {
-      const id = handoverId();
-      setHandovers((current) => [
-        {id, ...draft, updatedAt: '방금 전'},
-        ...current,
-      ]);
-      setSelectedId(id);
+  async function saveHandover(draft: HandoverDraft): Promise<void> {
+    try {
+      await workspace.saveHandover(editingHandover, draft);
+      setHandoverDialogOpen(false);
+      toast({
+        body: editingHandover
+          ? '인수인계를 수정했어요.'
+          : '인수인계를 추가했어요.',
+        uniqueID: 'handover-save',
+      });
+    } catch (error) {
+      if (!(error instanceof Error)) throw error;
+      toast({body: error.message, uniqueID: 'handover-save-error'});
     }
-    setHandoverDialogOpen(false);
-    toast({
-      body: editingHandover ? '인수인계를 수정했어요.' : '인수인계를 추가했어요.',
-      uniqueID: 'handover-save',
-    });
   }
 
-  function saveCategory(name: string) {
-    if (editingCategory) {
-      setCategories((current) =>
-        current.map((category) =>
-          category.id === editingCategory.id ? {...category, name} : category,
-        ),
-      );
-    } else {
-      setCategories((current) => [...current, {id: categoryId(), name}]);
+  async function saveCategory(name: string): Promise<void> {
+    try {
+      await workspace.saveCategory(editingCategory, name);
+      setCategoryDialogOpen(false);
+      toast({
+        body: editingCategory
+          ? '카테고리를 수정했어요.'
+          : '카테고리를 추가했어요.',
+        uniqueID: 'category-save',
+      });
+    } catch (error) {
+      if (!(error instanceof Error)) throw error;
+      toast({body: error.message, uniqueID: 'category-save-error'});
     }
-    setCategoryDialogOpen(false);
-    toast({
-      body: editingCategory ? '카테고리를 수정했어요.' : '카테고리를 추가했어요.',
-      uniqueID: 'category-save',
-    });
   }
 
-  function confirmDelete() {
+  async function confirmDelete(): Promise<void> {
     if (!deleteTarget) return;
 
-    switch (deleteTarget.kind) {
-      case 'handover': {
-        const remaining = handovers.filter(
-          (handover) => handover.id !== deleteTarget.handover.id,
-        );
-        setHandovers(remaining);
-        if (selectedId === deleteTarget.handover.id) {
-          setSelectedId(remaining[0]?.id);
+    try {
+      switch (deleteTarget.kind) {
+        case 'handover':
+          await workspace.removeHandover(deleteTarget.handover);
+          toast({body: '인수인계를 삭제했어요.', uniqueID: 'handover-delete'});
+          break;
+        case 'category':
+          await workspace.removeCategory(deleteTarget.category);
+          toast({body: '카테고리를 삭제했어요.', uniqueID: 'category-delete'});
+          break;
+        default:
+          assertNever(deleteTarget);
         }
-        toast({body: '인수인계를 삭제했어요.', uniqueID: 'handover-delete'});
-        break;
-      }
-      case 'category': {
-        const remaining = handovers.filter(
-          (handover) => handover.categoryId !== deleteTarget.category.id,
-        );
-        setCategories((current) =>
-          current.filter((category) => category.id !== deleteTarget.category.id),
-        );
-        setHandovers(remaining);
-        if (selectedHandover?.categoryId === deleteTarget.category.id) {
-          setSelectedId(remaining[0]?.id);
-        }
-        toast({body: '카테고리를 삭제했어요.', uniqueID: 'category-delete'});
-        break;
-      }
-      default:
-        assertNever(deleteTarget);
+      setDeleteTarget(undefined);
+    } catch (error) {
+      if (!(error instanceof Error)) throw error;
+      toast({body: error.message, uniqueID: 'delete-error'});
     }
-    setDeleteTarget(undefined);
   }
 
   return (
@@ -189,12 +146,12 @@ export function HandoverPage() {
         variant="elevated"
         sideNav={
           <HandoverSideNav
-            categories={categories}
-            handovers={handovers}
+            categories={workspace.categories}
+            handovers={workspace.handovers}
             search={search}
-            selectedId={selectedId}
+            selectedId={workspace.selectedId}
             onSearchChange={setSearch}
-            onSelect={setSelectedId}
+            onSelect={workspace.setSelectedId}
             onCreateHandover={openNewHandover}
             onCreateCategory={() => {
               setEditingCategory(undefined);
@@ -209,38 +166,48 @@ export function HandoverPage() {
             }
           />
         }>
-        <HandoverDocument
-          handover={selectedHandover}
-          categoryName={selectedCategory?.name}
-          onCreate={openNewHandover}
-          checklistValue={
-            selectedHandover ? completedChecklistItems[selectedHandover.id] ?? [] : []
-          }
-          onChecklistChange={(value) => {
-            if (!selectedHandover) return;
-
-            setCompletedChecklistItems((current) => ({
-              ...current,
-              [selectedHandover.id]: value,
-            }));
-          }}
-          onEdit={() => {
-            if (selectedHandover) {
-              setEditingHandover(selectedHandover);
-              setHandoverDialogOpen(true);
+        {workspace.isLoading || workspace.loadError ? (
+          <Center axis="both">
+            <Text type="body" color={workspace.loadError ? 'primary' : 'secondary'}>
+              {workspace.loadError ?? '인수인계를 불러오는 중입니다.'}
+            </Text>
+          </Center>
+        ) : (
+          <HandoverDocument
+            handover={workspace.selectedHandover}
+            categoryName={workspace.selectedCategory?.name}
+            onCreate={openNewHandover}
+            checklistValue={
+              workspace.selectedHandover
+                ? workspace.completedChecklistItems[workspace.selectedHandover.id] ?? []
+                : []
             }
-          }}
-          onDelete={() => {
-            if (selectedHandover) {
-              setDeleteTarget({kind: 'handover', handover: selectedHandover});
-            }
-          }}
-        />
+            onChecklistChange={(value) => {
+              if (workspace.selectedHandover) {
+                workspace.setChecklist(workspace.selectedHandover.id, value);
+              }
+            }}
+            onEdit={() => {
+              if (workspace.selectedHandover) {
+                setEditingHandover(workspace.selectedHandover);
+                setHandoverDialogOpen(true);
+              }
+            }}
+            onDelete={() => {
+              if (workspace.selectedHandover) {
+                setDeleteTarget({
+                  kind: 'handover',
+                  handover: workspace.selectedHandover,
+                });
+              }
+            }}
+          />
+        )}
       </AppShell>
 
       {isHandoverDialogOpen ? (
         <HandoverDialog
-          categories={categories}
+          categories={workspace.categories}
           handover={editingHandover}
           isOpen
           onClose={() => setHandoverDialogOpen(false)}

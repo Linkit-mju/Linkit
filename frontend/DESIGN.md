@@ -104,4 +104,4 @@ Strategy: mixed Astryx neutral surfaces. The app shell uses tonal separation; do
 
 | Item | Location | Why accepted | Exit |
 |---|---|---|---|
-| Frontend prototype uses in-memory seed data | Handover workspace | Backend is intentionally deferred in this delivery | Replace state mutations with the API contract in `docs/backend-handover-spec.md` |
+| Checklist completion is session-local | Handover document | The API persists checklist text but has no completion-state field | Add completion persistence when the backend contract defines it |
