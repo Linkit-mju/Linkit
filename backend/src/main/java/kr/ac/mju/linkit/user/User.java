@@ -32,6 +32,9 @@ public class User {
     @Column(name = "terms_accepted_at", nullable = false)
     private Instant termsAcceptedAt;
 
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
@@ -48,6 +51,7 @@ public class User {
             String passwordHash,
             UserStatus status,
             Instant termsAcceptedAt,
+            Instant emailVerifiedAt,
             Instant createdAt,
             Instant updatedAt
     ) {
@@ -57,6 +61,7 @@ public class User {
         this.passwordHash = passwordHash;
         this.status = status;
         this.termsAcceptedAt = termsAcceptedAt;
+        this.emailVerifiedAt = emailVerifiedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -83,6 +88,16 @@ public class User {
 
     public Instant getTermsAcceptedAt() {
         return termsAcceptedAt;
+    }
+
+    public Instant getEmailVerifiedAt() {
+        return emailVerifiedAt;
+    }
+
+    public void verifyEmail(Instant verifiedAt) {
+        this.status = UserStatus.ACTIVE;
+        this.emailVerifiedAt = verifiedAt;
+        this.updatedAt = verifiedAt;
     }
 
     public Instant getCreatedAt() {

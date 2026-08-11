@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import kr.ac.mju.linkit.auth.AuthExceptions.DuplicateEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidCredentials;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidMjuEmail;
+import kr.ac.mju.linkit.auth.AuthExceptions.EmailNotVerified;
 import kr.ac.mju.linkit.auth.AuthExceptions.WeakPassword;
 import kr.ac.mju.linkit.auth.AuthRequests.Login;
 import kr.ac.mju.linkit.auth.AuthRequests.SignUp;
@@ -27,15 +28,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
+    private final EmailVerificationService emailVerificationService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            Clock clock
+            Clock clock,
+            EmailVerificationService emailVerificationService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.clock = clock;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Transactional
@@ -54,14 +58,17 @@ public class AuthService {
                 email,
                 request.name().trim(),
                 passwordEncoder.encode(request.password()),
-                UserStatus.ACTIVE,
+                UserStatus.PENDING_EMAIL_VERIFICATION,
                 now,
+                null,
                 now,
                 now
         );
 
         try {
-            return userRepository.saveAndFlush(user);
+            User saved = userRepository.saveAndFlush(user);
+            emailVerificationService.issue(saved);
+            return saved;
         } catch (DataIntegrityViolationException exception) {
             throw new DuplicateEmail();
         }
@@ -71,10 +78,16 @@ public class AuthService {
     public User authenticate(Login request) {
         String email = MjuEmail.normalize(request.email());
         User user = userRepository.findByEmail(email)
-                .filter(found -> found.getStatus() == UserStatus.ACTIVE)
                 .orElseThrow(InvalidCredentials::new);
 
         if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new InvalidCredentials();
+        }
+
+        if (user.getStatus() == UserStatus.PENDING_EMAIL_VERIFICATION) {
+            throw new EmailNotVerified();
+        }
+        if (user.getStatus() != UserStatus.ACTIVE) {
             throw new InvalidCredentials();
         }
 
