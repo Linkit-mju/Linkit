@@ -104,15 +104,11 @@ function LoginForm({onNavigate}: {onNavigate: () => void}) {
 
     setIsSubmitting(true);
     try {
-      const user = await login({
+      await login({
         email: normalizeEmail(email),
         password,
       });
-      setMessage({
-        status: 'success',
-        title: `${user.name}님, 환영합니다.`,
-        description: '로그인이 완료되었습니다. 대시보드는 다음 단계에서 연결합니다.',
-      });
+      window.location.replace('/');
     } catch (error) {
       setMessage({
         status: 'error',

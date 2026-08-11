@@ -1,8 +1,15 @@
-export type AuthUser = {
-  id: string;
-  email: string;
-  name: string;
-};
+import {z} from 'zod';
+import {requestJson} from '../api';
+
+const AuthUserSchema = z
+  .object({
+    id: z.string().uuid(),
+    email: z.string(),
+    name: z.string(),
+  })
+  .readonly();
+
+export type AuthUser = z.infer<typeof AuthUserSchema>;
 
 type CsrfResponse = {
   headerName: string;
@@ -87,4 +94,8 @@ export function login(input: {
   password: string;
 }): Promise<AuthUser> {
   return post<AuthUser>('/api/v1/auth/login', input);
+}
+
+export function getCurrentUser(): Promise<AuthUser> {
+  return requestJson('/api/v1/auth/me', AuthUserSchema);
 }
