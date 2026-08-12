@@ -4,6 +4,26 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current task
 
+- Goal: connect handover CRUD and authentication-aware frontend routing to the Spring API, then create the PR.
+- Status: READY FOR PR — route guard verified, committed, and pushed
+- Last updated: 2026-08-12
+- Next action: user creates the cross-fork PR from the recorded compare URL.
+
+## Evidence index
+
+- [`red.md`](evidence/handover-api-integration/red.md) — reload persistence E2E fails before API integration; expected `FAIL`.
+- [`verification.md`](evidence/handover-api-integration/verification.md) — frontend/backend/full real-API E2E verification; `PASS`.
+- [`review-remediation.md`](evidence/handover-api-integration/review-remediation.md) — post-implementation review findings and fixes; `PASS`.
+- [`pr-body.md`](evidence/pr-body-draft/pr-body.md) — PR scope and current verification results; `PASS`.
+- [`pr-creation-diagnosis.md`](evidence/pr-creation-diagnosis/pr-creation-diagnosis.md) — fork/upstream branch and PR-path diagnosis; `PASS`.
+- [`direct-edit-cjk-final-manual-qa.md`](evidence/direct-edit-cjk-final/direct-edit-cjk-final-manual-qa.md) — responsive manual QA; `PASS`; high confidence.
+- [`harness-bootstrap-manual-qa.md`](evidence/harness-bootstrap/harness-bootstrap-manual-qa.md) — shared entrypoint and state-link verification; `PASS`; high confidence.
+- [`79b87c76-manual-qa.md`](evidence/handover-api-integration/79b87c76-manual-qa.md) — exact-commit runtime/manual QA matrix; `PASS`.
+- [`environment-config.md`](evidence/handover-api-integration/environment-config.md) — development API target isolation and bundle check; `PASS`.
+- [`red.md`](evidence/auth-routing/red.md) — missing anonymous/authenticated route redirects; expected `FAIL`.
+- [`green.md`](evidence/auth-routing/green.md) — focused authentication-routing integration tests; `PASS`.
+- [`verification.md`](evidence/auth-routing/verification.md) — lint, tests, build, strict scan, and route-surface verification; `PASS`.
+- [`pr-handoff.md`](evidence/auth-routing/pr-handoff.md) — pushed branch, compare URL, and PR body location; `PASS`.
 - Goal: deploy Linkit to AWS account `625250728854` with HTTPS and persistent PostgreSQL storage.
 - Status: COMPLETE — deployment-only branch rebased onto `origin/main` and verified
 - Last updated: 2026-08-12
@@ -24,6 +44,9 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
+- Completed: connected handover CRUD and committed a `/api/v1/auth/me` session guard for authenticated/anonymous route redirects at `f4beeb5`.
+- Blockers: none; Chromium and screenshot QA are explicitly excluded, and browser PR submission is handed to the user.
+- Verification: routing lint, tests, build, strict scan, and jsdom route-surface checks pass; see `evidence/auth-routing/verification.md`. Existing backend and handover verification remains recorded under `evidence/handover-api-integration/`.
 - Completed: deployed the combined app and PostgreSQL to Graviton EC2 behind CloudFront HTTPS at `https://d1y43yo05gqvik.cloudfront.net`.
 - Blockers: none for the requested deployment. RDS migration and a custom domain remain operational follow-ups.
 - Verification: main-base lint/build/backend tests/Docker build and deployed runtime checks pass; see `evidence/aws-deployment/preparation.md` and `evidence/aws-deployment/production-verification.md`.

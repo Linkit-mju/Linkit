@@ -8,3 +8,5 @@ backend/build/
 .claude/
 .DS_Store
 *.tsbuildinfo
+.env
+.env.*

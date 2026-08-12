@@ -8,6 +8,9 @@ import kr.ac.mju.linkit.auth.AuthExceptions.EmailNotVerified;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidEmailVerificationToken;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidMjuEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.WeakPassword;
+import kr.ac.mju.linkit.handover.HandoverExceptions.CategoryNotFound;
+import kr.ac.mju.linkit.handover.HandoverExceptions.HandoverNotFound;
+import kr.ac.mju.linkit.handover.HandoverExceptions.InvalidStatus;
 import kr.ac.mju.linkit.organization.OrganizationExceptions.AlreadyJoinedOrganization;
 import kr.ac.mju.linkit.organization.OrganizationExceptions.InvalidInviteCode;
 import kr.ac.mju.linkit.organization.OrganizationExceptions.OrganizationAccessDenied;
@@ -41,6 +44,19 @@ public class ApiExceptionHandler {
         return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", exception.getMessage());
     }
 
+    @ExceptionHandler(CategoryNotFound.class)
+    ResponseEntity<ApiError> categoryNotFound(CategoryNotFound exception) {
+        return error(HttpStatus.NOT_FOUND, "HANDOVER_CATEGORY_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler(HandoverNotFound.class)
+    ResponseEntity<ApiError> handoverNotFound(HandoverNotFound exception) {
+        return error(HttpStatus.NOT_FOUND, "HANDOVER_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidStatus.class)
+    ResponseEntity<ApiError> invalidStatus(InvalidStatus exception) {
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
     @ExceptionHandler(EmailNotVerified.class)
     ResponseEntity<ApiError> emailNotVerified(EmailNotVerified exception) {
         return error(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", exception.getMessage());

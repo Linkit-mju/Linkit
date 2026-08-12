@@ -113,10 +113,11 @@ function LoginForm({
 
     setIsSubmitting(true);
     try {
-      const user = await login({
+      await login({
         email: normalizeEmail(email),
         password,
       });
+      window.location.replace('/');
       setMessage({
         status: 'success',
         title: `${user.name}님, 환영합니다.`,
