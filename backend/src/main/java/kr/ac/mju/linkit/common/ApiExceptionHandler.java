@@ -14,6 +14,7 @@ import kr.ac.mju.linkit.handover.HandoverExceptions.InvalidStatus;
 import kr.ac.mju.linkit.organization.OrganizationExceptions.AlreadyJoinedOrganization;
 import kr.ac.mju.linkit.organization.OrganizationExceptions.InvalidInviteCode;
 import kr.ac.mju.linkit.organization.OrganizationExceptions.OrganizationAccessDenied;
+import kr.ac.mju.linkit.organizationchart.OrganizationChartException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -57,6 +58,8 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidStatus.class)
     ResponseEntity<ApiError> invalidStatus(InvalidStatus exception) {
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
+    }
+
     @ExceptionHandler(EmailNotVerified.class)
     ResponseEntity<ApiError> emailNotVerified(EmailNotVerified exception) {
         return error(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", exception.getMessage());
@@ -98,6 +101,16 @@ public class ApiExceptionHandler {
                 "ORGANIZATION_ACCESS_DENIED",
                 exception.getMessage()
         );
+    }
+
+    @ExceptionHandler(OrganizationChartException.class)
+    ResponseEntity<ApiError> organizationChart(OrganizationChartException exception) {
+        HttpStatus status = exception.getCode().endsWith("NOT_FOUND")
+                ? HttpStatus.NOT_FOUND
+                : exception.getCode().contains("ACCESS") || exception.getCode().equals("ORGANIZATION_REQUIRED")
+                ? HttpStatus.FORBIDDEN
+                : HttpStatus.CONFLICT;
+        return error(status, exception.getCode(), exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -102,6 +102,10 @@ export function HandoverSideNav({
           <SideNavItem label="환경 설정" icon="wrench" href="#" />
         </SideNavSection>
       }>
+      <SideNavSection title="운영">
+        <SideNavItem label="인수인계" icon="checkDouble" href="/" isSelected />
+        <SideNavItem label="조직도" icon="group" href="/organization-chart" />
+      </SideNavSection>
       <Divider />
       <SideNavSection title="카테고리">
         {categories.map((category) => {

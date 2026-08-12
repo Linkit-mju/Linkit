@@ -10,6 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
+import java.time.Instant;
+import kr.ac.mju.linkit.auth.VerificationEmailSender;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import kr.ac.mju.linkit.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,9 @@ class HandoverControllerIntegrationTests {
 
     @Autowired
     private UserRepository userRepository;
+
+    @MockitoBean
+    private VerificationEmailSender emailSender;
 
     @BeforeEach
     void cleanDatabase() {
@@ -162,6 +168,9 @@ class HandoverControllerIntegrationTests {
                                 }
                                 """.formatted(email)))
                 .andExpect(status().isCreated());
+        var user = userRepository.findByEmail(email).orElseThrow();
+        user.verifyEmail(Instant.now());
+        userRepository.saveAndFlush(user);
     }
 
     private UUID createCategory(MockHttpSession session, String name) throws Exception {

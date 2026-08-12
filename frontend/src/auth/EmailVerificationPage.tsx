@@ -7,7 +7,7 @@ import {VStack} from '@astryxdesign/core/Layout';
 import {Link} from '@astryxdesign/core/Link';
 import {Spinner} from '@astryxdesign/core/Spinner';
 import {Heading, Text} from '@astryxdesign/core/Text';
-import {ApiError} from '../api/client';
+import {ApiError} from '../api';
 import {confirmEmail, resendEmailVerification} from './api';
 
 const pageStyle: CSSProperties = {

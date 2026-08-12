@@ -14,7 +14,7 @@ import {HStack, VStack} from '@astryxdesign/core/Layout';
 import {Link} from '@astryxdesign/core/Link';
 import {Heading, Text} from '@astryxdesign/core/Text';
 import {TextInput} from '@astryxdesign/core/TextInput';
-import {ApiError} from '../api/client';
+import {ApiError} from '../api';
 import {login, signUp} from './api';
 import {
   isMjuEmail,
@@ -113,7 +113,7 @@ function LoginForm({
 
     setIsSubmitting(true);
     try {
-      await login({
+      const user = await login({
         email: normalizeEmail(email),
         password,
       });

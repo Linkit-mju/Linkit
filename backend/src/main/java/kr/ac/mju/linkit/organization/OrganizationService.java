@@ -10,6 +10,7 @@ import kr.ac.mju.linkit.organization.OrganizationExceptions.OrganizationAccessDe
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import kr.ac.mju.linkit.organizationchart.OrganizationChartService;
 
 @Service
 public class OrganizationService {
@@ -20,17 +21,20 @@ public class OrganizationService {
     private final MembershipRepository membershipRepository;
     private final OrganizationAccessPolicy organizationAccessPolicy;
     private final Clock clock;
+    private final OrganizationChartService organizationChartService;
 
     public OrganizationService(
             OrganizationRepository organizationRepository,
             MembershipRepository membershipRepository,
             OrganizationAccessPolicy organizationAccessPolicy,
-            Clock clock
+            Clock clock,
+            OrganizationChartService organizationChartService
     ) {
         this.organizationRepository = organizationRepository;
         this.membershipRepository = membershipRepository;
         this.organizationAccessPolicy = organizationAccessPolicy;
         this.clock = clock;
+        this.organizationChartService = organizationChartService;
     }
 
     @Transactional
@@ -59,6 +63,9 @@ public class OrganizationService {
 
         try {
             membershipRepository.saveAndFlush(membership);
+            if (membershipRepository.countByOrganizationId(organization.getId()) == 1) {
+                organizationChartService.bootstrapFirstMember(membership);
+            }
         } catch (DataIntegrityViolationException exception) {
             throw new AlreadyJoinedOrganization();
         }

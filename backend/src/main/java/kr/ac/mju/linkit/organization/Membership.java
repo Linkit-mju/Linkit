@@ -23,6 +23,15 @@ public class Membership {
     @Column(name = "joined_at", nullable = false)
     private Instant joinedAt;
 
+    @Column(length = 30)
+    private String phone;
+
+    @Column(name = "profile_image_url", length = 1000)
+    private String profileImageUrl;
+
+    @Column(name = "contact_visible", nullable = false)
+    private boolean contactVisible = true;
+
     protected Membership() {
     }
 
@@ -52,5 +61,15 @@ public class Membership {
 
     public Instant getJoinedAt() {
         return joinedAt;
+    }
+
+    public String getPhone() { return phone; }
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public boolean isContactVisible() { return contactVisible; }
+
+    public void updateProfile(String phone, String profileImageUrl, boolean contactVisible) {
+        this.phone = phone == null || phone.isBlank() ? null : phone.trim();
+        this.profileImageUrl = profileImageUrl == null || profileImageUrl.isBlank() ? null : profileImageUrl.trim();
+        this.contactVisible = contactVisible;
     }
 }
