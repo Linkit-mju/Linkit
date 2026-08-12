@@ -22,10 +22,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            @Value("${linkit.security.csrf-cookie-secure:false}") boolean csrfCookieSecure
+    ) throws Exception {
         CookieCsrfTokenRepository csrfRepository =
                 CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepository.setCookiePath("/");
+        csrfRepository.setCookieCustomizer(cookie -> cookie.secure(csrfCookieSecure));
 
         http
                 .cors(Customizer.withDefaults())
@@ -35,6 +39,11 @@ public class SecurityConfig {
                         .sessionFixation(fixation -> fixation.changeSessionId()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/assets/**",
+                                "/login",
+                                "/signup",
                                 "/api/v1/auth/csrf",
                                 "/api/v1/auth/sign-up",
                                 "/api/v1/auth/login",
