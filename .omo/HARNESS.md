@@ -24,6 +24,15 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - [`green.md`](evidence/auth-routing/green.md) — focused authentication-routing integration tests; `PASS`.
 - [`verification.md`](evidence/auth-routing/verification.md) — lint, tests, build, strict scan, and route-surface verification; `PASS`.
 - [`pr-handoff.md`](evidence/auth-routing/pr-handoff.md) — pushed branch, compare URL, and PR body location; `PASS`.
+- Goal: deploy Linkit to AWS account `625250728854` with HTTPS and persistent PostgreSQL storage.
+- Status: COMPLETE — deployment-only branch rebased onto `origin/main` and verified
+- Last updated: 2026-08-12
+- Next action: add a custom domain and migrate PostgreSQL to RDS before critical production use.
+
+## Evidence index
+
+- [`preparation.md`](evidence/aws-deployment/preparation.md) — packaging verification and AWS provider constraints; `PASS`.
+- [`production-verification.md`](evidence/aws-deployment/production-verification.md) — deployed stack, runtime, HTTPS, and security smoke tests; `PASS`.
 
 ## Work loop
 
@@ -38,3 +47,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Completed: connected handover CRUD and committed a `/api/v1/auth/me` session guard for authenticated/anonymous route redirects at `f4beeb5`.
 - Blockers: none; Chromium and screenshot QA are explicitly excluded, and browser PR submission is handed to the user.
 - Verification: routing lint, tests, build, strict scan, and jsdom route-surface checks pass; see `evidence/auth-routing/verification.md`. Existing backend and handover verification remains recorded under `evidence/handover-api-integration/`.
+- Completed: deployed the combined app and PostgreSQL to Graviton EC2 behind CloudFront HTTPS at `https://d1y43yo05gqvik.cloudfront.net`.
+- Blockers: none for the requested deployment. RDS migration and a custom domain remain operational follow-ups.
+- Verification: main-base lint/build/backend tests/Docker build and deployed runtime checks pass; see `evidence/aws-deployment/preparation.md` and `evidence/aws-deployment/production-verification.md`.
