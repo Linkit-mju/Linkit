@@ -14,7 +14,8 @@ import {HStack, VStack} from '@astryxdesign/core/Layout';
 import {Link} from '@astryxdesign/core/Link';
 import {Heading, Text} from '@astryxdesign/core/Text';
 import {TextInput} from '@astryxdesign/core/TextInput';
-import {AuthApiError, login, signUp} from './api';
+import {ApiError} from '../api/client';
+import {login, signUp} from './api';
 import {
   isMjuEmail,
   MJU_EMAIL_DOMAIN,
@@ -66,7 +67,15 @@ function Brand() {
   );
 }
 
-function LoginForm({onNavigate}: {onNavigate: () => void}) {
+function LoginForm({
+  onNavigate,
+  onLoginSuccess,
+  onVerificationRequired,
+}: {
+  onNavigate: () => void;
+  onLoginSuccess: () => void;
+  onVerificationRequired: (email: string) => void;
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -109,11 +118,21 @@ function LoginForm({onNavigate}: {onNavigate: () => void}) {
         password,
       });
       window.location.replace('/');
+      setMessage({
+        status: 'success',
+        title: `${user.name}님, 환영합니다.`,
+        description: '소속 조직을 확인하는 화면으로 이동합니다.',
+      });
+      onLoginSuccess();
     } catch (error) {
+      if (error instanceof ApiError && error.code === 'EMAIL_NOT_VERIFIED') {
+        onVerificationRequired(normalizeEmail(email));
+        return;
+      }
       setMessage({
         status: 'error',
         title:
-          error instanceof AuthApiError
+          error instanceof ApiError
             ? error.message
             : '로그인 중 문제가 발생했습니다.',
         description: '입력 내용을 확인하거나 잠시 후 다시 시도해주세요.',
@@ -203,7 +222,13 @@ function LoginForm({onNavigate}: {onNavigate: () => void}) {
   );
 }
 
-function SignupForm({onNavigate}: {onNavigate: () => void}) {
+function SignupForm({
+  onNavigate,
+  onSignUpSuccess,
+}: {
+  onNavigate: () => void;
+  onSignUpSuccess: (email: string) => void;
+}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -257,16 +282,12 @@ function SignupForm({onNavigate}: {onNavigate: () => void}) {
         password,
         termsAccepted: hasAcceptedTerms,
       });
-      setMessage({
-        status: 'success',
-        title: '회원가입이 완료되었습니다.',
-        description: `${user.email} 계정으로 로그인할 수 있습니다.`,
-      });
+      onSignUpSuccess(user.email);
     } catch (error) {
       setMessage({
         status: 'error',
         title:
-          error instanceof AuthApiError
+          error instanceof ApiError
             ? error.message
             : '회원가입 중 문제가 발생했습니다.',
         description: '입력 내용을 확인하거나 잠시 후 다시 시도해주세요.',
@@ -288,7 +309,7 @@ function SignupForm({onNavigate}: {onNavigate: () => void}) {
       <Banner
         status="info"
         title={`${MJU_EMAIL_DOMAIN} 이메일만 가입할 수 있습니다.`}
-        description="학생회 가입과 자료 접근은 소속 조직 관리자의 승인이 필요합니다."
+        description="계정 생성 후 관리자가 전달한 초대코드로 소속 조직에 가입합니다."
       />
 
       {message ? (
@@ -422,7 +443,15 @@ function SignupForm({onNavigate}: {onNavigate: () => void}) {
   );
 }
 
-export function AuthPage() {
+export function AuthPage({
+  onLoginSuccess,
+  onSignUpSuccess,
+  onVerificationRequired,
+}: {
+  onLoginSuccess: () => void;
+  onSignUpSuccess: (email: string) => void;
+  onVerificationRequired: (email: string) => void;
+}) {
   const [route, setRoute] = useState<AuthRoute>(() =>
     routeFromPathname(window.location.pathname),
   );
@@ -445,9 +474,16 @@ export function AuthPage() {
         <Brand />
         <Card padding={8} width="100%" elevation="low">
           {route === 'signup' ? (
-            <SignupForm onNavigate={() => goTo('login')} />
+            <SignupForm
+              onNavigate={() => goTo('login')}
+              onSignUpSuccess={onSignUpSuccess}
+            />
           ) : (
-            <LoginForm onNavigate={() => goTo('signup')} />
+            <LoginForm
+              onNavigate={() => goTo('signup')}
+              onLoginSuccess={onLoginSuccess}
+              onVerificationRequired={onVerificationRequired}
+            />
           )}
         </Card>
         <Text type="supporting" color="secondary" justify="center">

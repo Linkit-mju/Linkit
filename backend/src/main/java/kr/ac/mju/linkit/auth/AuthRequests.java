@@ -34,4 +34,16 @@ public final class AuthRequests {
             String password
     ) {
     }
+
+    public record ConfirmEmail(
+            @NotBlank(message = "이메일 인증 토큰이 필요합니다.")
+            String token
+    ) {
+    }
+
+    public record ResendEmailVerification(
+            @NotBlank(message = "이메일을 입력해주세요.")
+            String email
+    ) {
+    }
 }

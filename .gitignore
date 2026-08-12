@@ -3,6 +3,9 @@ dist/
 backend/build/
 .gradle/
 .idea/
+.agents/
+.codex/
+.claude/
 .DS_Store
 *.tsbuildinfo
 .env

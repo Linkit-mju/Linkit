@@ -4,11 +4,16 @@ import java.util.List;
 import java.util.Map;
 import kr.ac.mju.linkit.auth.AuthExceptions.DuplicateEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidCredentials;
+import kr.ac.mju.linkit.auth.AuthExceptions.EmailNotVerified;
+import kr.ac.mju.linkit.auth.AuthExceptions.InvalidEmailVerificationToken;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidMjuEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.WeakPassword;
 import kr.ac.mju.linkit.handover.HandoverExceptions.CategoryNotFound;
 import kr.ac.mju.linkit.handover.HandoverExceptions.HandoverNotFound;
 import kr.ac.mju.linkit.handover.HandoverExceptions.InvalidStatus;
+import kr.ac.mju.linkit.organization.OrganizationExceptions.AlreadyJoinedOrganization;
+import kr.ac.mju.linkit.organization.OrganizationExceptions.InvalidInviteCode;
+import kr.ac.mju.linkit.organization.OrganizationExceptions.OrganizationAccessDenied;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -52,6 +57,47 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidStatus.class)
     ResponseEntity<ApiError> invalidStatus(InvalidStatus exception) {
         return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
+    @ExceptionHandler(EmailNotVerified.class)
+    ResponseEntity<ApiError> emailNotVerified(EmailNotVerified exception) {
+        return error(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidEmailVerificationToken.class)
+    ResponseEntity<ApiError> invalidEmailVerificationToken(
+            InvalidEmailVerificationToken exception
+    ) {
+        return error(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_EMAIL_VERIFICATION_TOKEN",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(InvalidInviteCode.class)
+    ResponseEntity<ApiError> invalidInviteCode(InvalidInviteCode exception) {
+        return error(HttpStatus.NOT_FOUND, "INVALID_INVITE_CODE", exception.getMessage());
+    }
+
+    @ExceptionHandler(AlreadyJoinedOrganization.class)
+    ResponseEntity<ApiError> alreadyJoinedOrganization(
+            AlreadyJoinedOrganization exception
+    ) {
+        return error(
+                HttpStatus.CONFLICT,
+                "ORGANIZATION_ALREADY_JOINED",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(OrganizationAccessDenied.class)
+    ResponseEntity<ApiError> organizationAccessDenied(
+            OrganizationAccessDenied exception
+    ) {
+        return error(
+                HttpStatus.FORBIDDEN,
+                "ORGANIZATION_ACCESS_DENIED",
+                exception.getMessage()
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
