@@ -1,5 +1,12 @@
 # Harness state
 
+## Current task — organization chart UX hardening
+
+- Goal: harden destructive role removal, structured phone entry, profile uploads, term naming, and calendar date editing.
+- Status: COMPLETE — implementation and regression verification passed
+- Last updated: 2026-08-13
+- Next action: configure the profile image S3 bucket/CORS and restart the backend when preserving or migrating current local H2 data is arranged.
+
 This file is the durable handoff state for Codex and Claude. Read it before work and update it after each meaningful implementation or verification cycle.
 
 ## Current task
@@ -10,6 +17,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
+
+- [`verification.md`](evidence/organization-chart-ux/verification.md) — organization chart UX, API, storage and regression verification; `PASS`.
 
 - [`red.md`](evidence/handover-api-integration/red.md) — reload persistence E2E fails before API integration; expected `FAIL`.
 - [`verification.md`](evidence/handover-api-integration/verification.md) — frontend/backend/full real-API E2E verification; `PASS`.

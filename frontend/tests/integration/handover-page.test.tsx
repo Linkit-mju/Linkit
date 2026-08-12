@@ -49,6 +49,14 @@ vi.mock("../../src/handover/api", () => ({
   updateHandover: vi.fn(),
 }));
 
+vi.mock("../../src/auth/api", () => ({
+  getCurrentUser: vi.fn().mockResolvedValue({
+    id: "00000000-0000-4000-8000-000000000010",
+    email: "member@mju.ac.kr",
+    name: "홍길동",
+  }),
+}));
+
 describe("인수인계 페이지", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/");

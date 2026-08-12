@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {requestJson} from '../api';
+import {requestJson, requestVoid} from '../api';
 
 const AuthUserSchema = z
   .object({
@@ -17,22 +17,22 @@ export function signUp(input: {
   password: string;
   termsAccepted: boolean;
 }): Promise<AuthUser> {
-  return postJson<AuthUser>('/api/v1/auth/sign-up', input);
+  return requestJson('/api/v1/auth/sign-up', AuthUserSchema, {method: 'POST', json: input});
 }
 
 export function login(input: {
   email: string;
   password: string;
 }): Promise<AuthUser> {
-  return postJson<AuthUser>('/api/v1/auth/login', input);
+  return requestJson('/api/v1/auth/login', AuthUserSchema, {method: 'POST', json: input});
 }
 
 export function confirmEmail(token: string): Promise<AuthUser> {
-  return postJson<AuthUser>('/api/v1/auth/email-verifications/confirm', {token});
+  return requestJson('/api/v1/auth/email-verifications/confirm', AuthUserSchema, {method: 'POST', json: {token}});
 }
 
 export function resendEmailVerification(email: string): Promise<void> {
-  return postJson<void>('/api/v1/auth/email-verifications/resend', {email});
+  return requestVoid('/api/v1/auth/email-verifications/resend', {method: 'POST', json: {email}});
 }
 
 export function getCurrentUser(): Promise<AuthUser> {
