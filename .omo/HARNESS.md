@@ -4,13 +4,15 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current task
 
-- Goal: connect handover CRUD and authentication-aware frontend routing to the Spring API, then create the PR.
-- Status: READY FOR PR — route guard verified, committed, and pushed
+- Goal: deploy Linkit to AWS account `625250728854` with HTTPS and persistent PostgreSQL storage.
+- Status: COMPLETE — production stack and public HTTPS smoke tests verified
 - Last updated: 2026-08-12
-- Next action: user creates the cross-fork PR from the recorded compare URL.
+- Next action: add a custom domain and migrate PostgreSQL to RDS before critical production use.
 
 ## Evidence index
 
+- [`preparation.md`](evidence/aws-deployment/preparation.md) — packaging verification and AWS provider constraints; `PASS`.
+- [`production-verification.md`](evidence/aws-deployment/production-verification.md) — deployed stack, runtime, HTTPS, and security smoke tests; `PASS`.
 - [`red.md`](evidence/handover-api-integration/red.md) — reload persistence E2E fails before API integration; expected `FAIL`.
 - [`verification.md`](evidence/handover-api-integration/verification.md) — frontend/backend/full real-API E2E verification; `PASS`.
 - [`review-remediation.md`](evidence/handover-api-integration/review-remediation.md) — post-implementation review findings and fixes; `PASS`.
@@ -35,6 +37,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: connected handover CRUD and committed a `/api/v1/auth/me` session guard for authenticated/anonymous route redirects at `f4beeb5`.
-- Blockers: none; Chromium and screenshot QA are explicitly excluded, and browser PR submission is handed to the user.
-- Verification: routing lint, tests, build, strict scan, and jsdom route-surface checks pass; see `evidence/auth-routing/verification.md`. Existing backend and handover verification remains recorded under `evidence/handover-api-integration/`.
+- Completed: deployed the combined app and PostgreSQL to Graviton EC2 behind CloudFront HTTPS at `https://d1y43yo05gqvik.cloudfront.net`.
+- Blockers: none for the requested deployment. RDS migration and a custom domain remain operational follow-ups.
+- Verification: stack `CREATE_COMPLETE`; public pages, API behavior, containers, and secure CSRF cookie pass; see `evidence/aws-deployment/production-verification.md`.
