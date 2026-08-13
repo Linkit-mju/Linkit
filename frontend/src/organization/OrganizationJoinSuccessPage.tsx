@@ -1,5 +1,6 @@
-import {type CSSProperties} from 'react';
+import {type CSSProperties, useEffect} from 'react';
 import {Banner} from '@astryxdesign/core/Banner';
+import {Button} from '@astryxdesign/core/Button';
 import {Card} from '@astryxdesign/core/Card';
 import {Center} from '@astryxdesign/core/Center';
 import {VStack} from '@astryxdesign/core/Layout';
@@ -19,9 +20,16 @@ const contentStyle: CSSProperties = {
 
 export function OrganizationJoinSuccessPage({
   organization,
+  onContinue,
 }: {
   organization?: JoinedOrganization;
+  onContinue: () => void;
 }) {
+  useEffect(() => {
+    const redirect = window.setTimeout(onContinue, 1800);
+    return () => window.clearTimeout(redirect);
+  }, [onContinue]);
+
   return (
     <Center axis="both" style={pageStyle}>
       <VStack gap={5} hAlign="center" style={contentStyle}>
@@ -34,11 +42,12 @@ export function OrganizationJoinSuccessPage({
             <Banner
               status="success"
               title={`${organization?.name ?? '조직'}에 가입되었습니다.`}
-              description="가입 이후 화면은 다음 구현 단계에서 연결됩니다."
+              description="잠시 후 인수인계 페이지로 이동합니다."
             />
             <Text color="secondary">
-              소속 조직의 자료 접근 범위는 관리자 설정에 따라 결정됩니다.
+              이제 소속 조직의 인수인계 자료와 조직도를 확인할 수 있습니다.
             </Text>
+            <Button label="인수인계 페이지로 이동" variant="primary" width="100%" onClick={onContinue}/>
           </VStack>
         </Card>
       </VStack>

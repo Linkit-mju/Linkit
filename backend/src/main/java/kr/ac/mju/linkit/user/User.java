@@ -78,6 +78,11 @@ public class User {
         return name;
     }
 
+    public void updateName(String name, Instant updatedAt) {
+        this.name = name;
+        this.updatedAt = updatedAt;
+    }
+
     public String getPasswordHash() {
         return passwordHash;
     }

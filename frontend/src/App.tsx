@@ -13,6 +13,7 @@ import {OrganizationJoinPage} from './organization/OrganizationJoinPage';
 import {OrganizationJoinSuccessPage} from './organization/OrganizationJoinSuccessPage';
 import type {JoinedOrganization} from './organization/api';
 import {OrganizationChartPage} from './organizationChart/OrganizationChartPage';
+import {MyPage} from './myPage/MyPage';
 
 type AuthenticationState = 'checking' | 'authenticated' | 'anonymous' | 'unavailable';
 
@@ -74,9 +75,11 @@ export default function App() {
   } else if (pathname === '/organization/join') {
     page = <OrganizationJoinPage onJoined={(organization) => {setJoinedOrganization(organization); navigate('/organization/join/success');}} onDashboard={() => navigate('/')}/>;
   } else if (pathname === '/organization/join/success') {
-    page = <OrganizationJoinSuccessPage organization={joinedOrganization}/>;
+    page = <OrganizationJoinSuccessPage organization={joinedOrganization} onContinue={() => navigate('/')}/>;
   } else if (pathname === '/organization-chart') {
     page = <OrganizationChartPage/>;
+  } else if (pathname === '/my-page') {
+    page = <MyPage/>;
   } else {
     page = <HandoverPage/>;
   }

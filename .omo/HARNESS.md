@@ -36,6 +36,12 @@
 - Target: `d9dbe616dddc4777c7073f70bcbfccc63e7b402e`
 - Deployment: `linkit:main-d9dbe616-compat1` at `sha256:d21cb4415f2b133ad2a684ef94b4214121a60aa11128672bc88786e9db0179ee`
 - Next action: commit a durable migration-version reconciliation to main; the deployed compatibility image already preserves production data and reaches the intended V1–V6 schema.
+## Current task — my page
+
+- Goal: add an authenticated page for account identity and organization profile management.
+- Status: COMPLETE — frontend and backend implementation verified
+- Last updated: 2026-08-13
+- Next action: review the page in the running app, then commit/push when requested.
 
 ## Current task — organization chart UX hardening
 
@@ -64,6 +70,7 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - [`verification.md`](evidence/production-signup-mail-diagnosis/verification.md) — production signup failure caused by absent SMTP configuration; `FAIL`.
 
 - [`verification.md`](evidence/main-production-deploy-2026-08-13/verification.md) — current main image build, migration compatibility rehearsal, AWS rollout, and production smoke tests; `PASS`.
+- [`verification.md`](evidence/my-page/verification.md) — my page API, UI, build, and regression verification; `PASS`.
 
 - [`verification.md`](evidence/organization-chart-ux/verification.md) — organization chart UX, API, storage and regression verification; `PASS`.
 
