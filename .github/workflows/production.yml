@@ -1,0 +1,95 @@
+name: Production
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: linkit
+  INSTANCE_ID: i-094fafe24507601f9
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend checks
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+      - name: Backend tests
+        working-directory: backend
+        run: ./gradlew test --no-daemon
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::625250728854:role/linkit-github-production
+          aws-region: ${{ env.AWS_REGION }}
+      - id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - uses: docker/setup-buildx-action@v3
+      - name: Build and push ARM64 image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          image_uri="$REGISTRY/$ECR_REPOSITORY:main-${GITHUB_SHA::8}"
+          docker buildx build --platform linux/arm64 --tag "$image_uri" --push .
+          echo "IMAGE_URI=$image_uri" >> "$GITHUB_ENV"
+      - name: Roll out application through SSM
+        run: |
+          script_base64=$(base64 -w 0 infra/deploy-production.sh)
+          parameters=$(jq -n \
+            --arg script "$script_base64" \
+            --arg image "$IMAGE_URI" \
+            '{commands:[
+              ("echo " + $script + " | base64 -d > /tmp/linkit-deploy-production.sh"),
+              "chmod 700 /tmp/linkit-deploy-production.sh",
+              ("/tmp/linkit-deploy-production.sh " + $image)
+            ]}')
+          command_id=$(aws ssm send-command \
+            --region "$AWS_REGION" \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name AWS-RunShellScript \
+            --comment "Deploy main ${GITHUB_SHA}" \
+            --timeout-seconds 300 \
+            --parameters "$parameters" \
+            --query 'Command.CommandId' \
+            --output text)
+          aws ssm wait command-executed \
+            --region "$AWS_REGION" \
+            --command-id "$command_id" \
+            --instance-id "$INSTANCE_ID"
+          aws ssm get-command-invocation \
+            --region "$AWS_REGION" \
+            --command-id "$command_id" \
+            --instance-id "$INSTANCE_ID" \
+            --query '{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}'

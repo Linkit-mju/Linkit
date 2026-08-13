@@ -6,9 +6,12 @@ Parameters:
     Type: String
   CloudFrontPrefixListId:
     Type: String
-  MailFrom:
+  MailUsername:
     Type: String
-    Description: SES-verified sender address or address under a verified domain
+    Description: Gmail address used for authenticated SMTP and the From header
+  MailSecretArn:
+    Type: String
+    Description: Secrets Manager ARN containing username and appPassword fields
   FrontendBaseUrl:
     Type: String
     Description: Public HTTPS application URL used in verification links
@@ -53,8 +56,8 @@ Resources:
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref DatabasePassword
               - Effect: Allow
-                Action: ses:SendEmail
-                Resource: '*'
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref MailSecretArn
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -103,6 +106,8 @@ Resources:
           docker network create linkit
           docker volume create linkit-postgres
           DB_PASSWORD=$(aws secretsmanager get-secret-value --region ${AWS::Region} --secret-id ${DatabasePassword} --query SecretString --output text)
+          MAIL_JSON=$(aws secretsmanager get-secret-value --region ${AWS::Region} --secret-id ${MailSecretArn} --query SecretString --output text)
+          MAIL_PASSWORD=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["appPassword"].replace(" ", ""))' <<<"$MAIL_JSON")
           docker run -d --name linkit-db --restart unless-stopped --network linkit \
             -e POSTGRES_DB=linkit \
             -e POSTGRES_USER=linkit \
@@ -120,9 +125,14 @@ Resources:
             -e DB_PASSWORD="$DB_PASSWORD" \
             -e SESSION_COOKIE_SECURE=true \
             -e LINKIT_SECURITY_CSRF_COOKIE_SECURE=true \
-            -e MAIL_PROVIDER=ses \
-            -e MAIL_REGION=${AWS::Region} \
-            -e MAIL_FROM=${MailFrom} \
+            -e MAIL_PROVIDER=smtp \
+            -e MAIL_HOST=smtp.gmail.com \
+            -e MAIL_PORT=587 \
+            -e MAIL_USERNAME=${MailUsername} \
+            -e MAIL_PASSWORD="$MAIL_PASSWORD" \
+            -e MAIL_SMTP_AUTH=true \
+            -e MAIL_SMTP_STARTTLS=true \
+            -e MAIL_FROM=${MailUsername} \
             -e FRONTEND_BASE_URL=${FrontendBaseUrl} \
             ${ImageUri}
           for attempt in $(seq 1 60); do

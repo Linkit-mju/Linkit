@@ -1,5 +1,16 @@
 # Harness state
 
+## Current task — Gmail SMTP PR, merge, and deployment
+
+- Goal: make the verified Gmail SMTP production configuration durable, merge it, and deploy the merged main safely.
+- Status: READY FOR PR — Gmail SMTP, Flyway reconciliation, and OIDC CI/CD verification passed
+- Last updated: 2026-08-13
+- Branch: `feat/gmail-smtp-production`
+- Deployment constraint: do not update the stack while PostgreSQL resides on instance-local EBS; replace only the app container.
+- Completed: Gmail SMTP infrastructure, production-compatible Flyway numbering, PR verification workflow, main-only OIDC deploy workflow, rollback script, and least-privilege AWS OIDC role.
+- Verification: backend, frontend, CloudFormation, workflow YAML, shell syntax, migration byte comparison, and diff checks pass.
+- Next action: commit, push, open and merge the PR, then observe the first automated main deployment and smoke-test production.
+
 ## Current task — implement production verification email
 
 - Goal: replace missing production SMTP configuration with AWS-native verification email delivery.
@@ -64,6 +75,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
+
+- [`verification.md`](evidence/production-gmail-smtp/verification.md) — Gmail SMTP production configuration, live delivery, and deployment safety; verification in progress.
 
 - [`verification.md`](evidence/production-ses-mail/verification.md) — SES sender implementation, tests, infrastructure validation, and external readiness blocker; `BLOCKED`.
 
