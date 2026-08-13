@@ -1,5 +1,12 @@
 # Harness state
 
+## Current task — email verification SPA route
+
+- Goal: ensure emailed `/verify-email` links render the public React verification screen instead of a backend 401 response.
+- Status: FIXED LOCALLY — focused integration test passed; production deployment pending
+- Last updated: 2026-08-14
+- Next action: commit, push, merge, and deploy the routing fix.
+
 ## Current task — production signup CORS recovery
 
 - Goal: eliminate the browser-only HTTP 403 on production signup.
@@ -84,6 +91,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
+
+- [`verification.md`](evidence/email-verification-route/verification.md) — anonymous verification-link routing regression test; `PASS`.
 
 - [`verification.md`](evidence/production-gmail-smtp/verification.md) — Gmail SMTP production configuration, live delivery, and deployment safety; verification in progress.
 

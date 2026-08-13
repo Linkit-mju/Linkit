@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 import jakarta.servlet.http.HttpSession;
 import kr.ac.mju.linkit.handover.HandoverCategoryRepository;
@@ -62,6 +63,13 @@ class AuthControllerIntegrationTests {
         emailVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
         clearInvocations(emailSender);
+    }
+
+    @Test
+    void servesEmailVerificationPageWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/verify-email").queryParam("token", "mail-token"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/index.html"));
     }
 
     @Test
