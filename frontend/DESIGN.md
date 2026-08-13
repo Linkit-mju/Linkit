@@ -46,7 +46,8 @@ Font stacks come from `--font-family-body` and `--font-family-heading`. Korean t
 - Breakpoint behavior: rely on `AppShell` mobile navigation at `md`; the content reflows through wrapping `HStack` primitives.
 - No handwritten layout CSS, raw layout `div`, or magic spacing values.
 - Landing decision path: hook (`hero`) → explain (`problem/benefit`) → prove (`product preview`) → convert (`final CTA`).
-- Landing sections alternate Astryx `transparent`, `section`, and `muted` surfaces. The existing Astryx spacing scale provides the generous document rhythm; no landing-only spacing scale is introduced.
+- Landing sections share one Astryx `section` surface. Transparent nested sections, generous spacing-scale gaps, and dividers provide hierarchy without background-color changes.
+- The landing shell, including the header, uses one fixed, low-opacity radial wash from the theme blue token across its full width and height; no image asset or animation is used.
 
 ## 5. Components
 
@@ -58,7 +59,7 @@ Font stacks come from `--font-family-body` and `--font-family-heading`. Korean t
 
 ### Landing hero
 
-- **Structure**: centered `VStack` with an eyebrow label, display headline, supporting copy, and primary/secondary navigation links.
+- **Structure**: responsive two-column `Grid` pairing the left-aligned promise and actions with the product preview.
 - **Content job**: name the continuity problem and promise a concrete outcome without unsupported metrics.
 - **Responsive behavior**: semantic Astryx display type scales down through the theme; CTA links may wrap rather than compress.
 

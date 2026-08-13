@@ -4,15 +4,17 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current task
 
-- Goal: create a service-fit public landing-page draft for Linkit.
+- Goal: extend the static landing gradient across the full page width and height, including the header.
 - Status: COMPLETE
-- Last updated: 2026-08-11
-- Next action: gather stakeholder feedback on the landing copy and visual direction before production polish.
+- Last updated: 2026-08-13
+- Next action: user visual review of the full-shell gradient.
 
 ## Evidence index
 
 - [`final-automated-verification.md`](evidence/linkit-landing-page/final-automated-verification.md) — lint, build, integration, and affected E2E verification; `PASS`; manual visual QA waived.
 - [`implementation-cycle.md`](evidence/linkit-landing-page/implementation-cycle.md) — landing route red/green implementation cycle; `PASS`; automated focus check.
+- [`gradient-implementation.md`](evidence/linkit-gradient-landing/gradient-implementation.md) — animated page gradient, white content sections, and desktop/mobile verification; `PASS`; Playwright launch `BLOCKED`.
+- [`radial-gradient-adjustment.md`](evidence/linkit-landing-layout/radial-gradient-adjustment.md) — full-shell static gradient and automated verification; `PASS`; final visual QA delegated to user.
 - [`direct-edit-cjk-final-manual-qa.md`](evidence/direct-edit-cjk-final/direct-edit-cjk-final-manual-qa.md) — responsive manual QA; `PASS`; high confidence.
 - [`harness-bootstrap-manual-qa.md`](evidence/harness-bootstrap/harness-bootstrap-manual-qa.md) — shared entrypoint and state-link verification; `PASS`; high confidence.
 
@@ -26,6 +28,6 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Current handoff
 
-- Completed: service positioning and landing primitives are recorded; `/` renders the landing draft, `/workspace` preserves the handover surface, documentation names both routes, and automated verification passes.
+- Completed: `/` uses a responsive hero/product layout and one static theme-blue radial gradient across the full `AppShell`, including the header and every landing section; `/workspace` and auth routes are unchanged.
 - Blockers: none recorded.
-- Verification: lint, production build, 3 integration tests, 2 affected Chromium E2E scenarios, production dev-tool gating, and diff integrity all pass; user explicitly opted out of manual/browser visual QA.
+- Verification: lint, 3 integration tests, production build, and diff integrity pass; final visual QA is delegated to the user by request.
