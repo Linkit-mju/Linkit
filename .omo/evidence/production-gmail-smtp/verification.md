@@ -17,6 +17,9 @@
 - Gmail STARTTLS authentication and delivery to `depth2026server@gmail.com`: PASS.
 - Public `/` and CSRF endpoint: HTTP 200; PASS.
 - Anonymous `/api/v1/auth/me`: HTTP 401 as designed; PASS.
+- Browser-origin signup initially returned HTTP 403 with `Invalid CORS request`: expected diagnostic `FAIL`; production allowed only localhost origins.
+- App-only recovery with `LINKIT_SECURITY_ALLOWED_ORIGINS` set to the CloudFront URL: PASS.
+- Browser-equivalent signup request after recovery reaches application validation and returns the expected HTTP 400 for an invalid non-MJU address, with `Access-Control-Allow-Origin` set to the CloudFront URL: PASS.
 - `backend/gradlew clean test --no-daemon`: PASS.
 - Frontend lint, 5 tests, and production build: PASS; the existing duplicate accessible error text assertion was made multi-match aware.
 - CloudFormation template validation: PASS; Gmail username, mail secret ARN, frontend URL, image URI, and CloudFront prefix-list parameters are recognized.

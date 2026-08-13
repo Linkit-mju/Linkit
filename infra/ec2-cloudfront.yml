@@ -125,6 +125,7 @@ Resources:
             -e DB_PASSWORD="$DB_PASSWORD" \
             -e SESSION_COOKIE_SECURE=true \
             -e LINKIT_SECURITY_CSRF_COOKIE_SECURE=true \
+            -e LINKIT_SECURITY_ALLOWED_ORIGINS=${FrontendBaseUrl} \
             -e MAIL_PROVIDER=smtp \
             -e MAIL_HOST=smtp.gmail.com \
             -e MAIL_PORT=587 \

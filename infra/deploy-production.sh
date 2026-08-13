@@ -53,6 +53,7 @@ docker run -d --name linkit-app --restart unless-stopped --network linkit \
   -e DB_PASSWORD="$db_password" \
   -e SESSION_COOKIE_SECURE=true \
   -e LINKIT_SECURITY_CSRF_COOKIE_SECURE=true \
+  -e LINKIT_SECURITY_ALLOWED_ORIGINS="$frontend_url" \
   -e MAIL_PROVIDER=smtp \
   -e MAIL_HOST=smtp.gmail.com \
   -e MAIL_PORT=587 \
