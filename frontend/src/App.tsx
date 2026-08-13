@@ -75,7 +75,7 @@ export default function App() {
   } else if (pathname === '/organization/join') {
     page = <OrganizationJoinPage onJoined={(organization) => {setJoinedOrganization(organization); navigate('/organization/join/success');}} onDashboard={() => navigate('/')}/>;
   } else if (pathname === '/organization/join/success') {
-    page = <OrganizationJoinSuccessPage organization={joinedOrganization}/>;
+    page = <OrganizationJoinSuccessPage organization={joinedOrganization} onContinue={() => navigate('/')}/>;
   } else if (pathname === '/organization-chart') {
     page = <OrganizationChartPage/>;
   } else if (pathname === '/my-page') {
