@@ -28,6 +28,17 @@ Object.defineProperty(window, "scrollTo", {
   writable: true,
 });
 
+class ResizeObserverStub implements ResizeObserver {
+  disconnect() {}
+  observe() {}
+  unobserve() {}
+}
+
+Object.defineProperty(globalThis, "ResizeObserver", {
+  value: ResizeObserverStub,
+  writable: true,
+});
+
 HTMLDialogElement.prototype.showModal ??= function showModal() {
   this.open = true;
 };

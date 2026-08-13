@@ -73,6 +73,13 @@ class AuthControllerIntegrationTests {
     }
 
     @Test
+    void servesWorkspacePageWithoutAuthentication() throws Exception {
+        mockMvc.perform(get("/workspace"))
+                .andExpect(status().isOk())
+                .andExpect(forwardedUrl("/index.html"));
+    }
+
+    @Test
     void signsUpWithNormalizedMjuEmailAndHashedPassword() throws Exception {
         mockMvc.perform(post("/api/v1/auth/sign-up")
                         .with(csrf())

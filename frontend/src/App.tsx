@@ -9,6 +9,7 @@ import {
   EmailVerificationPendingPage,
 } from './auth/EmailVerificationPage';
 import {HandoverPage} from './handover/HandoverPage';
+import {LandingPage} from './landing/LandingPage';
 import {OrganizationJoinPage} from './organization/OrganizationJoinPage';
 import {OrganizationJoinSuccessPage} from './organization/OrganizationJoinSuccessPage';
 import type {JoinedOrganization} from './organization/api';
@@ -23,7 +24,8 @@ function navigate(path: string) {
 }
 
 function isPublicAuthRoute(pathname: string) {
-  return pathname === '/login' ||
+  return pathname === '/' ||
+    pathname === '/login' ||
     pathname === '/signup' ||
     pathname === '/verify-email' ||
     pathname === '/verify-email/pending';
@@ -41,7 +43,7 @@ export default function App() {
     getCurrentUser()
       .then(() => {
         if (!active) return;
-        if (pathname === '/login' || pathname === '/signup') navigate('/');
+        if (pathname === '/login' || pathname === '/signup') navigate('/workspace');
         setAuthentication('authenticated');
       })
       .catch((error: unknown) => {
@@ -66,16 +68,18 @@ export default function App() {
     page = <EmailVerificationPendingPage email={new URLSearchParams(window.location.search).get('email') ?? ''} onLogin={() => navigate('/login')}/>;
   } else if (pathname === '/verify-email') {
     page = <EmailVerificationConfirmPage token={new URLSearchParams(window.location.search).get('token') ?? ''} onLogin={() => navigate('/login')}/>;
+  } else if (pathname === '/') {
+    page = <LandingPage/>;
   } else if (authentication !== 'authenticated') {
     page = <AuthPage
-      onLoginSuccess={() => navigate('/')}
+      onLoginSuccess={() => navigate('/workspace')}
       onSignUpSuccess={(email) => navigate(`/verify-email/pending?email=${encodeURIComponent(email)}`)}
       onVerificationRequired={(email) => navigate(`/verify-email/pending?email=${encodeURIComponent(email)}`)}
     />;
   } else if (pathname === '/organization/join') {
-    page = <OrganizationJoinPage onJoined={(organization) => {setJoinedOrganization(organization); navigate('/organization/join/success');}} onDashboard={() => navigate('/')}/>;
+    page = <OrganizationJoinPage onJoined={(organization) => {setJoinedOrganization(organization); navigate('/organization/join/success');}} onDashboard={() => navigate('/workspace')}/>;
   } else if (pathname === '/organization/join/success') {
-    page = <OrganizationJoinSuccessPage organization={joinedOrganization} onContinue={() => navigate('/')}/>;
+    page = <OrganizationJoinSuccessPage organization={joinedOrganization} onContinue={() => navigate('/workspace')}/>;
   } else if (pathname === '/organization-chart') {
     page = <OrganizationChartPage/>;
   } else if (pathname === '/my-page') {

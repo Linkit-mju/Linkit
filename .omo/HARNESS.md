@@ -1,5 +1,14 @@
 # Harness state
 
+## Current task — landing page route
+
+- Goal: make the landing page the public root and move the authenticated handover workspace to `/workspace`.
+- Status: COMPLETE — frontend and backend automated verification passed; browser visual QA blocked by browser policy.
+- Last updated: 2026-08-14
+- Completed: restored the responsive static landing UI at `/`, moved the handover route and internal links to `/workspace`, updated login/onboarding destinations, and configured the Git-ignored local frontend `.env` for `npm run dev`.
+- Blockers: in-app browser admin policy denied localhost access; no automated verification blocker remains.
+- Next action: run the backend and frontend, review `/`, then commit when requested.
+
 ## Current task — email verification SPA route
 
 - Goal: ensure emailed `/verify-email` links render the public React verification screen instead of a backend 401 response.
@@ -91,6 +100,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
+
+- [`verification.md`](evidence/landing-route/verification.md) — root landing, `/workspace` routing, build, and backend SPA forwarding; `PASS`; browser visual QA `BLOCKED`.
 
 - [`verification.md`](evidence/email-verification-route/verification.md) — anonymous verification-link routing regression test; `PASS`.
 
