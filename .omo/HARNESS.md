@@ -1,5 +1,14 @@
 # Harness state
 
+## Current task — production signup CORS recovery
+
+- Goal: eliminate the browser-only HTTP 403 on production signup.
+- Status: COMPLETE — CloudFront origin allowed in runtime and browser-equivalent verification passed
+- Last updated: 2026-08-13
+- Root cause: production CORS allowed only localhost; requests carrying the CloudFront `Origin` header returned `Invalid CORS request`.
+- Completed: restarted only `linkit-app` with the CloudFront allowed origin and added the setting to durable deployment paths.
+- Next action: merge the durable CORS/CI correction and rerun automated production deployment.
+
 ## Current task — Gmail SMTP PR, merge, and deployment
 
 - Goal: make the verified Gmail SMTP production configuration durable, merge it, and deploy the merged main safely.
