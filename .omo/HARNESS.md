@@ -1,5 +1,41 @@
 # Harness state
 
+## Current task — implement production verification email
+
+- Goal: replace missing production SMTP configuration with AWS-native verification email delivery.
+- Status: BLOCKED — AWS requested more information; Basic Support prevents replying through the CLI
+- Last updated: 2026-08-13
+- Completed: conditional SES sender, local SMTP fallback, EC2 IAM permission, deployment parameters, regression verification, Gmail sender verification, and SES production-access submission.
+- Sender: `depth2026server@gmail.com` (`SUCCESS`, `ap-northeast-2`).
+- Next action: paste the prepared use-case response into Support Center case `178660167400305`, obtain production access, then deploy and test real `@mju.ac.kr` delivery.
+
+## Current task — SES implementation PR
+
+- Goal: publish the current AWS SES verification-mail implementation as a reviewable PR.
+- Status: COMPLETE — committed, pushed, and opened as PR #9
+- Last updated: 2026-08-13
+- Branch: `feat/aws-ses-verification-email`
+- Commit: `01849ff`
+- PR: `https://github.com/Linkit-mju/Linkit/pull/9`
+- Verification: backend tests, CloudFormation validation, and diff check pass.
+- Next action: review and merge PR #9; activate SES in production only after AWS approves sandbox removal.
+
+## Current task — diagnose production signup failure
+
+- Goal: identify why production signup shows a generic request failure.
+- Status: COMPLETE — missing production SMTP configuration confirmed
+- Last updated: 2026-08-13
+- Blocker: no production SMTP provider or credentials are configured.
+- Next action: configure SMTP and `FRONTEND_BASE_URL`, restart the app container, and verify real email delivery.
+
+## Current task — deploy current main
+
+- Goal: deploy the current `origin/main` commit to the existing AWS production environment.
+- Status: COMPLETE — current main application deployed with production-safe Flyway compatibility
+- Last updated: 2026-08-13
+- Target: `d9dbe616dddc4777c7073f70bcbfccc63e7b402e`
+- Deployment: `linkit:main-d9dbe616-compat1` at `sha256:d21cb4415f2b133ad2a684ef94b4214121a60aa11128672bc88786e9db0179ee`
+- Next action: commit a durable migration-version reconciliation to main; the deployed compatibility image already preserves production data and reaches the intended V1–V6 schema.
 ## Current task — my page
 
 - Goal: add an authenticated page for account identity and organization profile management.
@@ -9,8 +45,12 @@
 
 ## Current task — organization chart UX hardening
 
+
+
+
 - Goal: harden destructive role removal, structured phone entry, profile uploads, term naming, and calendar date editing.
-- Status: COMPLETE — implementation and regression verification passed
+- Status: COMPLETE —
+- implementation and regression verification passed
 - Last updated: 2026-08-13
 - Next action: configure the profile image S3 bucket/CORS and restart the backend when preserving or migrating current local H2 data is arranged.
 
@@ -25,6 +65,11 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 
 ## Evidence index
 
+- [`verification.md`](evidence/production-ses-mail/verification.md) — SES sender implementation, tests, infrastructure validation, and external readiness blocker; `BLOCKED`.
+
+- [`verification.md`](evidence/production-signup-mail-diagnosis/verification.md) — production signup failure caused by absent SMTP configuration; `FAIL`.
+
+- [`verification.md`](evidence/main-production-deploy-2026-08-13/verification.md) — current main image build, migration compatibility rehearsal, AWS rollout, and production smoke tests; `PASS`.
 - [`verification.md`](evidence/my-page/verification.md) — my page API, UI, build, and regression verification; `PASS`.
 
 - [`verification.md`](evidence/organization-chart-ux/verification.md) — organization chart UX, API, storage and regression verification; `PASS`.

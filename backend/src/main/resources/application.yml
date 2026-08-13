@@ -40,6 +40,8 @@ linkit:
       public-base-url: ${PROFILE_IMAGE_PUBLIC_BASE_URL:}
   frontend-base-url: ${FRONTEND_BASE_URL:http://127.0.0.1:5173}
   mail:
+    provider: ${MAIL_PROVIDER:smtp}
+    region: ${MAIL_REGION:${AWS_REGION:ap-northeast-2}}
     from: ${MAIL_FROM:no-reply@linkit.local}
   security:
     allowed-origins: http://localhost:5173,http://127.0.0.1:5173
