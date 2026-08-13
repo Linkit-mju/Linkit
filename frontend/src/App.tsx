@@ -13,6 +13,7 @@ import {OrganizationJoinPage} from './organization/OrganizationJoinPage';
 import {OrganizationJoinSuccessPage} from './organization/OrganizationJoinSuccessPage';
 import type {JoinedOrganization} from './organization/api';
 import {OrganizationChartPage} from './organizationChart/OrganizationChartPage';
+import {MyPage} from './myPage/MyPage';
 
 type AuthenticationState = 'checking' | 'authenticated' | 'anonymous' | 'unavailable';
 
@@ -77,6 +78,8 @@ export default function App() {
     page = <OrganizationJoinSuccessPage organization={joinedOrganization}/>;
   } else if (pathname === '/organization-chart') {
     page = <OrganizationChartPage/>;
+  } else if (pathname === '/my-page') {
+    page = <MyPage/>;
   } else {
     page = <HandoverPage/>;
   }
