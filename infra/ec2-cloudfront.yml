@@ -1,0 +1,212 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Linkit MVP on Graviton EC2 with local PostgreSQL and CloudFront HTTPS
+
+Parameters:
+  ImageUri:
+    Type: String
+  CloudFrontPrefixListId:
+    Type: String
+  MailFrom:
+    Type: String
+    Description: SES-verified sender address or address under a verified domain
+  FrontendBaseUrl:
+    Type: String
+    Description: Public HTTPS application URL used in verification links
+
+Resources:
+  DatabasePassword:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Linkit PostgreSQL password
+      GenerateSecretString:
+        PasswordLength: 32
+        ExcludePunctuation: true
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: LinkitRuntimeAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:GetAuthorizationToken
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: !Sub 'arn:${AWS::Partition}:ecr:${AWS::Region}:${AWS::AccountId}:repository/linkit'
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref DatabasePassword
+              - Effect: Allow
+                Action: ses:SendEmail
+                Resource: '*'
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Linkit HTTP only from CloudFront
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !Ref CloudFrontPrefixListId
+
+  Instance:
+    Type: AWS::EC2::Instance
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT15M
+    Properties:
+      ImageId: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      InstanceType: t4g.small
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroupIds:
+        - !GetAtt SecurityGroup.GroupId
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 20
+            VolumeType: gp3
+            Encrypted: true
+            DeleteOnTermination: true
+      Tags:
+        - Key: Name
+          Value: linkit
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euo pipefail
+          dnf install -y docker aws-cfn-bootstrap
+          systemctl enable --now docker
+          docker network create linkit
+          docker volume create linkit-postgres
+          DB_PASSWORD=$(aws secretsmanager get-secret-value --region ${AWS::Region} --secret-id ${DatabasePassword} --query SecretString --output text)
+          docker run -d --name linkit-db --restart unless-stopped --network linkit \
+            -e POSTGRES_DB=linkit \
+            -e POSTGRES_USER=linkit \
+            -e POSTGRES_PASSWORD="$DB_PASSWORD" \
+            -v linkit-postgres:/var/lib/postgresql/data \
+            postgres:17-alpine
+          until docker exec linkit-db pg_isready -U linkit -d linkit; do sleep 2; done
+          aws ecr get-login-password --region ${AWS::Region} | docker login --username AWS --password-stdin ${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}
+          docker pull ${ImageUri}
+          docker run -d --name linkit-app --restart unless-stopped --network linkit \
+            -p 80:8080 \
+            -e SPRING_PROFILES_ACTIVE=postgres \
+            -e DB_URL=jdbc:postgresql://linkit-db:5432/linkit \
+            -e DB_USERNAME=linkit \
+            -e DB_PASSWORD="$DB_PASSWORD" \
+            -e SESSION_COOKIE_SECURE=true \
+            -e LINKIT_SECURITY_CSRF_COOKIE_SECURE=true \
+            -e MAIL_PROVIDER=ses \
+            -e MAIL_REGION=${AWS::Region} \
+            -e MAIL_FROM=${MailFrom} \
+            -e FRONTEND_BASE_URL=${FrontendBaseUrl} \
+            ${ImageUri}
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost/api/v1/auth/csrf >/dev/null; then
+              /opt/aws/bin/cfn-signal --success true --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
+              exit 0
+            fi
+            sleep 5
+          done
+          docker logs linkit-app
+          /opt/aws/bin/cfn-signal --success false --stack ${AWS::StackName} --resource Instance --region ${AWS::Region}
+          exit 1
+
+  CachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub 'linkit-no-cache-${AWS::AccountId}'
+        DefaultTTL: 0
+        MaxTTL: 0
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          CookiesConfig:
+            CookieBehavior: none
+          EnableAcceptEncodingBrotli: false
+          EnableAcceptEncodingGzip: false
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
+  OriginRequestPolicy:
+    Type: AWS::CloudFront::OriginRequestPolicy
+    Properties:
+      OriginRequestPolicyConfig:
+        Name: !Sub 'linkit-all-viewer-${AWS::AccountId}'
+        CookiesConfig:
+          CookieBehavior: all
+        HeadersConfig:
+          HeaderBehavior: allExcept
+          Headers:
+            - Host
+        QueryStringsConfig:
+          QueryStringBehavior: all
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    DependsOn: Instance
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_200
+        Origins:
+          - Id: linkit-ec2
+            DomainName: !GetAtt Instance.PublicDnsName
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              HTTPPort: 80
+        DefaultCacheBehavior:
+          TargetOriginId: linkit-ec2
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - DELETE
+            - GET
+            - HEAD
+            - OPTIONS
+            - PATCH
+            - POST
+            - PUT
+          CachedMethods:
+            - GET
+            - HEAD
+          CachePolicyId: !Ref CachePolicy
+          OriginRequestPolicyId: !Ref OriginRequestPolicy
+          Compress: true
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+
+Outputs:
+  ApplicationUrl:
+    Value: !Sub 'https://${Distribution.DomainName}'
+  InstanceId:
+    Value: !Ref Instance
+  DatabaseSecretArn:
+    Value: !Ref DatabasePassword

@@ -28,4 +28,16 @@ public final class AuthExceptions {
             super("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
     }
+
+    public static final class EmailNotVerified extends RuntimeException {
+        public EmailNotVerified() {
+            super("학교 이메일 인증이 필요합니다.");
+        }
+    }
+
+    public static final class InvalidEmailVerificationToken extends RuntimeException {
+        public InvalidEmailVerificationToken() {
+            super("유효하지 않거나 만료된 이메일 인증 링크입니다.");
+        }
+    }
 }

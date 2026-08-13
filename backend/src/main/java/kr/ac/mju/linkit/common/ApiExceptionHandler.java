@@ -4,8 +4,17 @@ import java.util.List;
 import java.util.Map;
 import kr.ac.mju.linkit.auth.AuthExceptions.DuplicateEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidCredentials;
+import kr.ac.mju.linkit.auth.AuthExceptions.EmailNotVerified;
+import kr.ac.mju.linkit.auth.AuthExceptions.InvalidEmailVerificationToken;
 import kr.ac.mju.linkit.auth.AuthExceptions.InvalidMjuEmail;
 import kr.ac.mju.linkit.auth.AuthExceptions.WeakPassword;
+import kr.ac.mju.linkit.handover.HandoverExceptions.CategoryNotFound;
+import kr.ac.mju.linkit.handover.HandoverExceptions.HandoverNotFound;
+import kr.ac.mju.linkit.handover.HandoverExceptions.InvalidStatus;
+import kr.ac.mju.linkit.organization.OrganizationExceptions.AlreadyJoinedOrganization;
+import kr.ac.mju.linkit.organization.OrganizationExceptions.InvalidInviteCode;
+import kr.ac.mju.linkit.organization.OrganizationExceptions.OrganizationAccessDenied;
+import kr.ac.mju.linkit.organizationchart.OrganizationChartException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -34,6 +43,74 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidCredentials.class)
     ResponseEntity<ApiError> invalidCredentials(InvalidCredentials exception) {
         return error(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", exception.getMessage());
+    }
+
+    @ExceptionHandler(CategoryNotFound.class)
+    ResponseEntity<ApiError> categoryNotFound(CategoryNotFound exception) {
+        return error(HttpStatus.NOT_FOUND, "HANDOVER_CATEGORY_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler(HandoverNotFound.class)
+    ResponseEntity<ApiError> handoverNotFound(HandoverNotFound exception) {
+        return error(HttpStatus.NOT_FOUND, "HANDOVER_NOT_FOUND", exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidStatus.class)
+    ResponseEntity<ApiError> invalidStatus(InvalidStatus exception) {
+        return error(HttpStatus.BAD_REQUEST, "VALIDATION_FAILED", exception.getMessage());
+    }
+
+    @ExceptionHandler(EmailNotVerified.class)
+    ResponseEntity<ApiError> emailNotVerified(EmailNotVerified exception) {
+        return error(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED", exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidEmailVerificationToken.class)
+    ResponseEntity<ApiError> invalidEmailVerificationToken(
+            InvalidEmailVerificationToken exception
+    ) {
+        return error(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_EMAIL_VERIFICATION_TOKEN",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(InvalidInviteCode.class)
+    ResponseEntity<ApiError> invalidInviteCode(InvalidInviteCode exception) {
+        return error(HttpStatus.NOT_FOUND, "INVALID_INVITE_CODE", exception.getMessage());
+    }
+
+    @ExceptionHandler(AlreadyJoinedOrganization.class)
+    ResponseEntity<ApiError> alreadyJoinedOrganization(
+            AlreadyJoinedOrganization exception
+    ) {
+        return error(
+                HttpStatus.CONFLICT,
+                "ORGANIZATION_ALREADY_JOINED",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(OrganizationAccessDenied.class)
+    ResponseEntity<ApiError> organizationAccessDenied(
+            OrganizationAccessDenied exception
+    ) {
+        return error(
+                HttpStatus.FORBIDDEN,
+                "ORGANIZATION_ACCESS_DENIED",
+                exception.getMessage()
+        );
+    }
+
+    @ExceptionHandler(OrganizationChartException.class)
+    ResponseEntity<ApiError> organizationChart(OrganizationChartException exception) {
+        HttpStatus status = exception.getCode().endsWith("NOT_FOUND")
+                ? HttpStatus.NOT_FOUND
+                : exception.getCode().contains("ACCESS") || exception.getCode().equals("ORGANIZATION_REQUIRED")
+                ? HttpStatus.FORBIDDEN
+                : HttpStatus.CONFLICT;
+        return error(status, exception.getCode(), exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

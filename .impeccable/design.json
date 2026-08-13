@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-07T00:00:00+09:00",
+  "title": "Design System: Linkit",
+  "extensions": {
+    "colorMeta": {
+      "desk-ink": {
+        "role": "primary",
+        "displayName": "Desk Ink",
+        "canonical": "#262626",
+        "tonalRamp": ["#171717", "#262626", "#404040", "#525252", "#737373", "#a3a3a3", "#d4d4d4", "#f5f5f5"]
+      },
+      "worktop": {
+        "role": "neutral",
+        "displayName": "Worktop",
+        "canonical": "#f1f1f1",
+        "tonalRamp": ["#171717", "#262626", "#404040", "#525252", "#737373", "#a3a3a3", "#d4d4d4", "#f1f1f1"]
+      },
+      "paper-surface": {
+        "role": "neutral",
+        "displayName": "Paper Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#171717", "#262626", "#404040", "#525252", "#737373", "#a3a3a3", "#e5e5e5", "#ffffff"]
+      }
+    },
+    "typographyMeta": {
+      "headline": {"displayName": "Operational Headline", "purpose": "페이지의 최상위 작업 제목."},
+      "body": {"displayName": "Interface Body", "purpose": "설명, 문서 내용과 일반 정보."},
+      "label": {"displayName": "Control Label", "purpose": "버튼, 입력 레이블과 조작 요소."}
+    },
+    "shadows": [
+      {"name": "low", "value": "var(--shadow-low)", "purpose": "작업대 위의 주요 패널과 선택적으로 떠 있는 카드."},
+      {"name": "medium", "value": "var(--shadow-med)", "purpose": "Popover, menu와 임시 레이어."},
+      {"name": "high", "value": "var(--shadow-high)", "purpose": "Modal과 명확한 최상위 오버레이."}
+    ],
+    "motion": [
+      {"name": "fast", "value": "175ms", "purpose": "버튼과 입력 상태 전환."},
+      {"name": "ease-standard", "value": "cubic-bezier(0.24, 1, 0.4, 1)", "purpose": "기본 상태 전환 easing."}
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "화면의 핵심 진행 행동에 사용하는 절제된 primary action.",
+      "html": "<button class=\"ds-btn-primary\">인수인계 시작</button>",
+      "css": ".ds-btn-primary { height: 36px; padding: var(--spacing-2) var(--spacing-3); border: 0; border-radius: var(--radius-element); background: var(--color-accent); color: var(--color-on-accent); font: 500 var(--text-label-size)/var(--text-label-leading) var(--font-family-body); transition: background-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); } .ds-btn-primary:hover { background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover)); } .ds-btn-primary:active { transform: scale(.98); } .ds-btn-primary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "주요 흐름을 방해하지 않는 보조 행동.",
+      "html": "<button class=\"ds-btn-secondary\">나중에 하기</button>",
+      "css": ".ds-btn-secondary { height: 36px; padding: var(--spacing-2) var(--spacing-3); border: 0; border-radius: var(--radius-element); background: var(--color-neutral); color: var(--color-text-primary); font: 500 var(--text-label-size)/var(--text-label-leading) var(--font-family-body); transition: background-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard); } .ds-btn-secondary:hover { background-image: linear-gradient(var(--color-overlay-hover), var(--color-overlay-hover)); } .ds-btn-secondary:active { transform: scale(.98); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "항상 보이는 레이블과 명확한 focus 상태를 가진 입력창.",
+      "html": "<label class=\"ds-field\"><span>학교 이메일</span><input type=\"email\" placeholder=\"name@mju.ac.kr\"></label>",
+      "css": ".ds-field { display: grid; gap: var(--spacing-2); color: var(--color-text-primary); font: 500 var(--text-label-size)/var(--text-label-leading) var(--font-family-body); } .ds-field input { height: 36px; padding: 0 var(--spacing-3); border: var(--border-width) solid var(--color-border-emphasized); border-radius: var(--radius-element); background: var(--color-background-surface); color: var(--color-text-primary); font: 400 var(--text-body-size)/var(--text-body-leading) var(--font-family-body); } .ds-field input:hover { box-shadow: var(--shadow-inset-hover); } .ds-field input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Operational Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "독립된 설정 그룹이나 요약에 사용하는 낮은 레이어의 패널.",
+      "html": "<section class=\"ds-card\"><strong>축제 준비 인수인계</strong><p>확인 중 · 8개 항목 중 6개 완료</p></section>",
+      "css": ".ds-card { padding: var(--spacing-4); border: var(--border-width) solid var(--color-border-emphasized); border-radius: var(--radius-container); background: var(--color-background-card); color: var(--color-text-primary); box-shadow: var(--shadow-low); font-family: var(--font-family-body); } .ds-card strong { font-size: var(--text-heading-3-size); line-height: var(--text-heading-3-leading); } .ds-card p { margin: var(--spacing-2) 0 0; color: var(--color-text-secondary); font-size: var(--text-supporting-size); line-height: var(--text-supporting-leading); } .ds-card:hover { border-color: var(--color-accent); } .ds-card:focus-within { outline: 2px solid var(--color-accent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Status Banner",
+      "kind": "custom",
+      "refersTo": "banner-status",
+      "description": "결과를 먼저 말하고 다음 행동을 설명하는 상태 피드백.",
+      "html": "<aside class=\"ds-banner\"><strong>저장되었습니다.</strong><span>모든 변경 사항이 최신 상태입니다.</span></aside>",
+      "css": ".ds-banner { display: grid; gap: var(--spacing-1); padding: var(--spacing-3); border-radius: var(--radius-container); background: var(--color-success-muted); color: var(--color-success); font-family: var(--font-family-body); } .ds-banner strong { font-size: var(--text-body-size); line-height: var(--text-body-leading); } .ds-banner span { font-size: var(--text-supporting-size); line-height: var(--text-supporting-leading); } .ds-banner:focus-visible { outline: 2px solid var(--color-success); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "학생회 운영 데스크",
+    "overview": "Linkit은 여러 임기와 부서의 업무가 한눈에 정리되는 차분한 운영 데스크처럼 보여야 한다. 장식보다 정보의 위치, 현재 상태, 담당자와 다음 행동을 빠르게 파악하는 데 시각적 우선순위를 둔다. 표면은 중립적인 회색 작업대 위에 흰 문서와 패널이 놓인 구조를 사용한다. 깊이감은 은은한 레이어로만 표현하고, 버튼과 입력창은 절제되고 정돈된 인상을 유지한다.",
+    "keyCharacteristics": ["중립적이고 높은 대비의 운영 화면", "4px 기반 간격과 정돈된 정보 밀도", "흰 표면과 낮은 그림자로 구분되는 은은한 레이어", "Astryx 컴포넌트와 semantic token 중심의 일관성", "상태와 권한, 저장 결과를 색상 외의 단서로 함께 전달"],
+    "rules": [
+      {"name": "The Meaningful Color Rule", "body": "색은 장식이 아니라 상태, 피드백 또는 실제 범주를 전달할 때만 사용한다.", "section": "colors"},
+      {"name": "The Redundancy Rule", "body": "성공, 경고와 오류는 색상만으로 전달하지 않고 텍스트, 아이콘 또는 상태 레이블을 함께 제공한다.", "section": "colors"},
+      {"name": "The Operational Hierarchy Rule", "body": "크기를 늘리는 대신 Heading, Text와 weight 역할을 먼저 사용해 정보 위계를 만든다.", "section": "typography"},
+      {"name": "The Quiet Layer Rule", "body": "그림자는 정보 그룹을 꾸미기 위한 장식이 아니며, 실제 z축 관계가 있을 때 가장 낮은 단계부터 사용한다.", "section": "elevation"}
+    ],
+    "dos": ["Do 화면을 만들기 전에 `npx astryx build \"<idea>\"`로 적합한 셸, 블록과 컴포넌트를 찾는다.", "Do spacing, color, radius, shadow와 motion에 Astryx semantic token을 사용한다.", "Do 현재 상태, 권한, 저장 결과와 다음 행동을 명확한 한국어로 보여준다.", "Do 카드보다 행과 리스트가 적합한 고밀도 업무 데이터를 edge-to-edge로 배치한다.", "Do keyboard focus, 오류 설명, 반응형 재배치와 reduced motion을 완성 조건으로 취급한다."],
+    "donts": ["Don't 레이아웃을 위해 raw `<div>`나 `<span>`, 별도 CSS 파일 또는 utility class를 사용한다.", "Don't raw hex, px, 임의의 radius나 shadow를 제품 코드에 추가한다.", "Don't 모든 콘텐츠를 Card로 감싸거나 Badge를 장식으로 사용한다.", "Don't 색만으로 상태를 전달하거나 placeholder로 label을 대체한다.", "Don't 실제 자료에 없는 이용 지표, 고객 사례, 추천사, 제휴나 보안 성과를 만들어낸다."]
+  }
+}

@@ -1,6 +1,9 @@
 package kr.ac.mju.linkit.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -8,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import jakarta.servlet.http.HttpSession;
+import kr.ac.mju.linkit.handover.HandoverCategoryRepository;
+import kr.ac.mju.linkit.handover.HandoverRepository;
 import kr.ac.mju.linkit.user.User;
 import kr.ac.mju.linkit.user.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +24,11 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.mockito.ArgumentCaptor;
+import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -31,11 +41,27 @@ class AuthControllerIntegrationTests {
     private UserRepository userRepository;
 
     @Autowired
+    private HandoverRepository handoverRepository;
+
+    @Autowired
+    private HandoverCategoryRepository categoryRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailVerificationTokenRepository emailVerificationTokenRepository;
+
+    @MockitoBean
+    private VerificationEmailSender emailSender;
 
     @BeforeEach
     void cleanDatabase() {
+        handoverRepository.deleteAll();
+        categoryRepository.deleteAll();
+        emailVerificationTokenRepository.deleteAll();
         userRepository.deleteAll();
+        clearInvocations(emailSender);
     }
 
     @Test
@@ -51,6 +77,14 @@ class AuthControllerIntegrationTests {
         User saved = userRepository.findByEmail("student@mju.ac.kr").orElseThrow();
         assertThat(saved.getPasswordHash()).isNotEqualTo("password1");
         assertThat(passwordEncoder.matches("password1", saved.getPasswordHash())).isTrue();
+        assertThat(saved.getStatus()).isEqualTo(
+                kr.ac.mju.linkit.user.UserStatus.PENDING_EMAIL_VERIFICATION
+        );
+        assertThat(saved.getEmailVerifiedAt()).isNull();
+        verify(emailSender).sendVerificationEmail(
+                eq("student@mju.ac.kr"),
+                org.mockito.ArgumentMatchers.contains("/verify-email?token=")
+        );
     }
 
     @Test
@@ -78,6 +112,7 @@ class AuthControllerIntegrationTests {
     @Test
     void logsInAndPersistsAuthenticationInSession() throws Exception {
         signUp("student@mju.ac.kr");
+        confirmLatestVerification("student@mju.ac.kr");
 
         MvcResult login = mockMvc.perform(post("/api/v1/auth/login")
                         .with(csrf())
@@ -122,6 +157,70 @@ class AuthControllerIntegrationTests {
     }
 
     @Test
+    void blocksLoginUntilEmailIsVerified() throws Exception {
+        signUp("pending@mju.ac.kr");
+
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "pending@mju.ac.kr",
+                                  "password": "password1"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value("EMAIL_NOT_VERIFIED"));
+
+        confirmLatestVerification("pending@mju.ac.kr");
+
+        User verified = userRepository.findByEmail("pending@mju.ac.kr").orElseThrow();
+        assertThat(verified.getStatus()).isEqualTo(
+                kr.ac.mju.linkit.user.UserStatus.ACTIVE
+        );
+        assertThat(verified.getEmailVerifiedAt()).isNotNull();
+    }
+
+    @Test
+    void rejectsInvalidEmailVerificationToken() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/email-verifications/confirm")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"not-a-valid-token"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code")
+                        .value("INVALID_EMAIL_VERIFICATION_TOKEN"));
+    }
+
+    @Test
+    void resendsVerificationWithoutRevealingAccountExistence() throws Exception {
+        signUp("resend@mju.ac.kr");
+        clearInvocations(emailSender);
+
+        mockMvc.perform(post("/api/v1/auth/email-verifications/resend")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"resend@mju.ac.kr"}
+                                """))
+                .andExpect(status().isNoContent());
+        verify(emailSender).sendVerificationEmail(
+                eq("resend@mju.ac.kr"),
+                org.mockito.ArgumentMatchers.contains("/verify-email?token=")
+        );
+
+        mockMvc.perform(post("/api/v1/auth/email-verifications/resend")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"missing@mju.ac.kr"}
+                                """))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
     void requiresCsrfTokenForStateChangingRequests() throws Exception {
         mockMvc.perform(post("/api/v1/auth/sign-up")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -135,6 +234,27 @@ class AuthControllerIntegrationTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(signUpBody(email)))
                 .andExpect(status().isCreated());
+    }
+
+    private void confirmLatestVerification(String email) throws Exception {
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailSender).sendVerificationEmail(eq(email), urlCaptor.capture());
+        String query = URI.create(urlCaptor.getValue()).getRawQuery();
+        String token = java.util.Arrays.stream(query.split("&"))
+                .map(parameter -> parameter.split("=", 2))
+                .filter(parts -> parts.length == 2 && parts[0].equals("token"))
+                .map(parts -> URLDecoder.decode(parts[1], StandardCharsets.UTF_8))
+                .findFirst()
+                .orElseThrow();
+
+        mockMvc.perform(post("/api/v1/auth/email-verifications/confirm")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"token":"%s"}
+                                """.formatted(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value(email));
     }
 
     private String signUpBody(String email) {

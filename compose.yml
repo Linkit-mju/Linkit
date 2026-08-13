@@ -1,0 +1,29 @@
+services:
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: linkit-mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: linkit-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: linkit
+      POSTGRES_USER: linkit
+      POSTGRES_PASSWORD: linkit-local
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U linkit -d linkit"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - linkit-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  linkit-postgres-data:

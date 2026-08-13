@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import kr.ac.mju.linkit.auth.AuthRequests.Login;
 import kr.ac.mju.linkit.auth.AuthRequests.SignUp;
+import kr.ac.mju.linkit.auth.AuthRequests.ConfirmEmail;
+import kr.ac.mju.linkit.auth.AuthRequests.ResendEmailVerification;
 import kr.ac.mju.linkit.auth.AuthResponses.CsrfResponse;
 import kr.ac.mju.linkit.auth.AuthResponses.UserResponse;
 import kr.ac.mju.linkit.user.User;
@@ -31,11 +33,16 @@ public class AuthController {
             new SimpleGrantedAuthority("ROLE_USER");
 
     private final AuthService authService;
+    private final EmailVerificationService emailVerificationService;
     private final HttpSessionSecurityContextRepository securityContextRepository =
             new HttpSessionSecurityContextRepository();
 
-    public AuthController(AuthService authService) {
+    public AuthController(
+            AuthService authService,
+            EmailVerificationService emailVerificationService
+    ) {
         this.authService = authService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @GetMapping("/csrf")
@@ -47,6 +54,19 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse signUp(@Valid @RequestBody SignUp request) {
         return toResponse(authService.signUp(request));
+    }
+
+    @PostMapping("/email-verifications/confirm")
+    public UserResponse confirmEmail(@Valid @RequestBody ConfirmEmail request) {
+        return toResponse(emailVerificationService.confirm(request.token()));
+    }
+
+    @PostMapping("/email-verifications/resend")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resendEmailVerification(
+            @Valid @RequestBody ResendEmailVerification request
+    ) {
+        emailVerificationService.resend(request.email());
     }
 
     @PostMapping("/login")
