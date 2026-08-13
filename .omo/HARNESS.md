@@ -1,5 +1,13 @@
 # Harness state
 
+## Current task — production Docker build cache
+
+- Goal: reduce repeated production deployment time by reusing Buildx layers in GitHub Actions.
+- Status: COMPLETE — workflow cache configuration and syntax verified
+- Last updated: 2026-08-14
+- Completed: added scoped `type=gha` cache import/export with `mode=max` to the ARM64 production image build.
+- Next action: push the dedicated branch, merge it, and compare the second cached main deployment duration.
+
 ## Current task — email verification SPA route
 
 - Goal: ensure emailed `/verify-email` links render the public React verification screen instead of a backend 401 response.
@@ -91,6 +99,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
+
+- [`verification.md`](evidence/production-build-cache/verification.md) — scoped Buildx GitHub Actions cache configuration; `PASS`.
 
 - [`verification.md`](evidence/email-verification-route/verification.md) — anonymous verification-link routing regression test; `PASS`.
 
