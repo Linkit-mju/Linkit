@@ -99,7 +99,7 @@ export function HandoverSideNav({
       footer={
         <SideNavSection title="계정" isHeaderHidden>
           <SideNavItem label="2027 학생회" icon="checkDouble" href="#" />
-          <SideNavItem label="환경 설정" icon="wrench" href="#" />
+          <SideNavItem label="마이페이지" icon="wrench" href="/my-page" />
         </SideNavSection>
       }>
       <SideNavSection title="운영">

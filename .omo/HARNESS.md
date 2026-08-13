@@ -1,5 +1,12 @@
 # Harness state
 
+## Current task — my page
+
+- Goal: add an authenticated page for account identity and organization profile management.
+- Status: COMPLETE — frontend and backend implementation verified
+- Last updated: 2026-08-13
+- Next action: review the page in the running app, then commit/push when requested.
+
 ## Current task — organization chart UX hardening
 
 - Goal: harden destructive role removal, structured phone entry, profile uploads, term naming, and calendar date editing.
@@ -17,6 +24,8 @@ This file is the durable handoff state for Codex and Claude. Read it before work
 - Next action: user creates the cross-fork PR from the recorded compare URL.
 
 ## Evidence index
+
+- [`verification.md`](evidence/my-page/verification.md) — my page API, UI, build, and regression verification; `PASS`.
 
 - [`verification.md`](evidence/organization-chart-ux/verification.md) — organization chart UX, API, storage and regression verification; `PASS`.
 
