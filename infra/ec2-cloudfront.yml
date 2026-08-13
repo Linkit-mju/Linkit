@@ -6,6 +6,12 @@ Parameters:
     Type: String
   CloudFrontPrefixListId:
     Type: String
+  MailFrom:
+    Type: String
+    Description: SES-verified sender address or address under a verified domain
+  FrontendBaseUrl:
+    Type: String
+    Description: Public HTTPS application URL used in verification links
 
 Resources:
   DatabasePassword:
@@ -46,6 +52,9 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref DatabasePassword
+              - Effect: Allow
+                Action: ses:SendEmail
+                Resource: '*'
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -111,6 +120,10 @@ Resources:
             -e DB_PASSWORD="$DB_PASSWORD" \
             -e SESSION_COOKIE_SECURE=true \
             -e LINKIT_SECURITY_CSRF_COOKIE_SECURE=true \
+            -e MAIL_PROVIDER=ses \
+            -e MAIL_REGION=${AWS::Region} \
+            -e MAIL_FROM=${MailFrom} \
+            -e FRONTEND_BASE_URL=${FrontendBaseUrl} \
             ${ImageUri}
           for attempt in $(seq 1 60); do
             if curl --fail --silent http://localhost/api/v1/auth/csrf >/dev/null; then
