@@ -12,11 +12,13 @@
 ## Current task — SES implementation PR
 
 - Goal: publish the current AWS SES verification-mail implementation as a reviewable PR.
-- Status: READY TO PUBLISH — branch verification passed; commit, push, and PR creation remain
+- Status: COMPLETE — committed, pushed, and opened as PR #9
 - Last updated: 2026-08-13
 - Branch: `feat/aws-ses-verification-email`
+- Commit: `01849ff`
+- PR: `https://github.com/Linkit-mju/Linkit/pull/9`
 - Verification: backend tests, CloudFormation validation, and diff check pass.
-- Next action: commit, push, and create the PR with the SES sandbox limitation documented.
+- Next action: review and merge PR #9; activate SES in production only after AWS approves sandbox removal.
 
 ## Current task — diagnose production signup failure
 
