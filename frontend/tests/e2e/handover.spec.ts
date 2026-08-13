@@ -55,7 +55,7 @@ async function signUpAndLogin(context: BrowserContext): Promise<void> {
 test('인수인계 생성·수정·삭제가 서버에 반영된다', async ({page}) => {
   // Given: an authenticated user opens an empty handover workspace
   await signUpAndLogin(page.context());
-  await page.goto('/');
+  await page.goto('/workspace');
 
   // When: the user creates a category and a handover document
   await page.getByRole('button', {name: '카테고리 추가'}).click();
@@ -122,7 +122,7 @@ test('카테고리 수정과 삭제 cascade가 서버에 반영된다', async ({
     references: [],
     openQuestions: [],
   });
-  await page.goto('/');
+  await page.goto('/workspace');
   await expect(page.getByRole('heading', {name: 'cascade 확인 문서'})).toBeVisible();
 
   await page.getByRole('button', {name: '수정 전 카테고리 카테고리 메뉴'}).click();

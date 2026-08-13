@@ -38,7 +38,7 @@ describe('인증 페이지', () => {
 
   it('인증되지 않은 사용자가 보호 경로를 열면 로그인으로 이동한다', async () => {
     // Given: an unauthenticated visitor requests the protected root route
-    window.history.replaceState({}, '', '/');
+    window.history.replaceState({}, '', '/workspace');
 
     // When: the application checks the current session
     render(<App />);
@@ -63,6 +63,6 @@ describe('인증 페이지', () => {
 
     // Then: the handover page replaces the authentication route
     expect(await screen.findByText('인수인계 화면')).toBeVisible();
-    expect(window.location.pathname).toBe('/');
+    expect(window.location.pathname).toBe('/workspace');
   });
 });

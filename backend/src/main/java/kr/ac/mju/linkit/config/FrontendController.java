@@ -11,6 +11,7 @@ public class FrontendController {
             "/signup",
             "/verify-email",
             "/verify-email/pending",
+            "/workspace",
             "/organization/join",
             "/organization/join/success",
             "/organization-chart",

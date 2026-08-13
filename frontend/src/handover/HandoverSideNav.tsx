@@ -103,7 +103,7 @@ export function HandoverSideNav({
         </SideNavSection>
       }>
       <SideNavSection title="운영">
-        <SideNavItem label="인수인계" icon="checkDouble" href="/" isSelected />
+        <SideNavItem label="인수인계" icon="checkDouble" href="/workspace" isSelected />
         <SideNavItem label="조직도" icon="group" href="/organization-chart" />
       </SideNavSection>
       <Divider />

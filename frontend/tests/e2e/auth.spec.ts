@@ -68,7 +68,7 @@ test('로그인 성공 후 인수인계 화면으로 이동한다', async ({page
   await page.getByRole('button', {name: '로그인'}).click();
 
   // Then: the authenticated handover route is visible
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/workspace$/);
   await expect(
     page.getByRole('heading', {name: '인수인계를 선택해주세요'}),
   ).toBeVisible();

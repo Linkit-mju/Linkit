@@ -46,6 +46,7 @@ public class SecurityConfig {
                                 "/signup",
                                 "/verify-email",
                                 "/verify-email/pending",
+                                "/workspace",
                                 "/organization/join",
                                 "/organization/join/success",
                                 "/organization-chart",
