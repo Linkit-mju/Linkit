@@ -32,7 +32,8 @@ describe('인증 페이지', () => {
     expect(
       screen.getByText('명지대학교 이메일(@mju.ac.kr)을 입력해주세요.'),
     ).toBeVisible();
-    expect(screen.getByText('비밀번호를 입력해주세요.')).toBeVisible();
+    expect(screen.getAllByText('비밀번호를 입력해주세요.')[0])
+      .toBeVisible();
   });
 
   it('인증되지 않은 사용자가 보호 경로를 열면 로그인으로 이동한다', async () => {
